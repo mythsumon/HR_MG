@@ -31,8 +31,8 @@ const navigation: NavigationItem[] = [
   
   // HR Manager specific items
   { name: 'Approvals', href: '/approvals', icon: '✅', role: 'manager', group: 'hr' },
-  { name: 'Team Attendance', href: '/team-attendance', icon: '👥⏰', role: 'manager', group: 'hr' },
-  { name: 'Task Assignments', href: '/task-assignments', icon: '📋👥', role: 'manager', group: 'hr' },
+  { name: 'Team Attendance', href: '/team-attendance', icon: '👥', role: 'manager', group: 'hr' },
+  { name: 'Task Assignments', href: '/task-assignments', icon: '📋', role: 'manager', group: 'hr' },
 ];
 
 export default function Layout({ children }: LayoutProps) {
@@ -89,33 +89,27 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto lg:scrollbar-hide ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
         <div className="flex h-full flex-col">
-          {/* Header Section - Removed HR Icon */}
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 px-4">
-            {/* Empty header space */}
-          </div>
-
           {/* User Profile Section */}
           <div className="border-b border-gray-200 p-4">
-            <div className="flex items-center mb-3">
+            <div className="flex items-center">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">{userAvatar}</span>
               </div>
               <div className="ml-3 min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {userName}
-                </p>
+                <Link
+                  href="/settings"
+                  className="block"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <p className="text-sm font-medium text-gray-900 truncate hover:text-primary-600 transition-colors cursor-pointer">
+                    {userName}
+                  </p>
+                </Link>
                 <p className="text-xs text-gray-500 truncate">
                   {userRole === 'manager' ? 'HR Manager' : 'Employee'}
                 </p>
               </div>
             </div>
-            <Link
-              href="/profile"
-              className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
-              onClick={() => setSidebarOpen(false)}
-            >
-              View Profile →
-            </Link>
           </div>
 
           {/* Navigation */}
