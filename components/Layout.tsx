@@ -87,7 +87,7 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
+      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto lg:scrollbar-hide ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
         <div className="flex h-full flex-col">
           {/* Header Section */}
           <div className="flex h-16 shrink-0 items-center border-b border-gray-200 px-4 justify-center">
@@ -121,7 +121,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hide">
             {/* Core Group */}
             <div className="mb-4">
               <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
