@@ -77,7 +77,7 @@ export default function Layout({ children }: LayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 grid grid-cols-1 lg:grid-cols-[256px_1fr]">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -87,17 +87,12 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
-        <div className="flex h-screen flex-col">
+      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
+        <div className="flex h-full flex-col">
           {/* Header Section */}
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 px-4 justify-between">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">HR</span>
-              </div>
-              <span className="ml-3 text-xl font-semibold text-gray-900 truncate">
-                HR System
-              </span>
+          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 px-4 justify-center">
+            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">HR</span>
             </div>
           </div>
 
@@ -258,9 +253,9 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-col min-w-0 h-screen">
         {/* Top header for mobile */}
-        <header className="bg-white shadow-sm border-b border-gray-200 lg:hidden">
+        <header className="bg-white shadow-sm border-b border-gray-200 lg:hidden flex-shrink-0">
           <div className="flex h-16 items-center justify-between px-4">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -275,9 +270,6 @@ export default function Layout({ children }: LayoutProps) {
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">HR</span>
               </div>
-              <span className="ml-3 text-xl font-semibold text-gray-900">
-                HR System
-              </span>
             </div>
 
             <button
@@ -297,7 +289,7 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
           {children}
         </main>
       </div>
