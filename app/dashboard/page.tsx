@@ -10,6 +10,7 @@ export default function DashboardPage() {
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
   const [selectedDate, setSelectedDate] = React.useState<any>(null);
   const [attendancePopup, setAttendancePopup] = React.useState(false);
+  const [showGreeting, setShowGreeting] = React.useState(true);
   const [clockStatus, setClockStatus] = React.useState({
     clockedIn: true,
     clockInTime: '09:05',
@@ -31,14 +32,23 @@ export default function DashboardPage() {
         <div className="space-y-6">
 
           {/* Top Banner */}
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-sm p-6 text-white">
-            <h1 className="text-2xl font-bold mb-2">
-              {getGreeting()}, John 👋
-            </h1>
-            <p className="text-primary-100">
-              Have a productive day at work!
-            </p>
-          </div>
+          {showGreeting && (
+            <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-sm p-6 text-white relative">
+              <button 
+                onClick={() => setShowGreeting(false)}
+                className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors text-xl"
+                aria-label="Close greeting"
+              >
+                ✕
+              </button>
+              <h1 className="text-2xl font-bold mb-2 pr-8">
+                {getGreeting()}, John 👋
+              </h1>
+              <p className="text-primary-100 pr-8">
+                Have a productive day at work!
+              </p>
+            </div>
+          )}
 
           {/* Main Cards (2x2) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
