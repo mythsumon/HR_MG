@@ -89,11 +89,9 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto lg:scrollbar-hide ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
         <div className="flex h-full flex-col">
-          {/* Header Section */}
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 px-4 justify-center">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">HR</span>
-            </div>
+          {/* Header Section - Removed HR Icon */}
+          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 px-4">
+            {/* Empty header space */}
           </div>
 
           {/* User Profile Section */}
@@ -266,11 +264,8 @@ export default function Layout({ children }: LayoutProps) {
               </svg>
             </button>
             
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">HR</span>
-              </div>
-            </div>
+            {/* Empty space where HR icon was */}
+            <div></div>
 
             <button
               onClick={() => {
