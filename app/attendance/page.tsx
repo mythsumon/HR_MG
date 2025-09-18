@@ -2,14 +2,50 @@
 
 import React from 'react';
 import Layout from '@/components/Layout';
+import HRAttendanceTable from './hr-table';
 
 export default function AttendancePage() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [viewMode, setViewMode] = React.useState<'Month' | 'Week' | 'Day'>('Month');
   const [selectedEvent, setSelectedEvent] = React.useState<any>(null);
   const [showModal, setShowModal] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<'employee' | 'manager'>('employee');
+  const [currentView, setCurrentView] = React.useState<'employee' | 'hr'>('employee');
 
-  // Navigation functions
+  // Load user role from localStorage
+  React.useEffect(() => {
+    const storedRole = localStorage.getItem('userRole') as 'employee' | 'manager';
+    const storedView = localStorage.getItem('currentView') as 'employee' | 'hr';
+    if (storedRole) setUserRole(storedRole);
+    if (storedRole === 'manager') {
+      setCurrentView(storedView || 'employee');
+    }
+  }, []);
+
+  // Listen for view changes
+  React.useEffect(() => {
+    const handleViewChange = (event: CustomEvent) => {
+      if (userRole === 'manager') {
+        setCurrentView(event.detail.view);
+      }
+    };
+    
+    window.addEventListener('viewChanged', handleViewChange as EventListener);
+    return () => window.removeEventListener('viewChanged', handleViewChange as EventListener);
+  }, [userRole]);
+
+  // Check if should show HR view
+  const shouldShowHRView = userRole === 'manager' && currentView === 'hr';
+
+  if (shouldShowHRView) {
+    return (
+      <Layout>
+        <HRAttendanceTable />
+      </Layout>
+    );
+  }
+
+  // Navigation functions for employee calendar view
   const navigateToToday = () => setCurrentDate(new Date());
   
   const navigateDate = (direction: number) => {
@@ -24,7 +60,6 @@ export default function AttendancePage() {
     setCurrentDate(newDate);
   };
 
-  // Get calendar days
   const getCalendarDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -41,7 +76,6 @@ export default function AttendancePage() {
     return days;
   };
 
-  // Mock attendance data
   const getAttendanceEvent = (date: Date) => {
     const dateKey = date.getDate();
     const isCurrentMonth = date.getMonth() === currentDate.getMonth();
@@ -50,23 +84,21 @@ export default function AttendancePage() {
     if (!isCurrentMonth || isFuture) return null;
     
     const attendanceData: { [key: number]: any } = {
-      1: { status: 'present', checkIn: '09:05', checkOut: '18:05', location: 'Office', notes: '' },
-      2: { status: 'present', checkIn: '09:00', checkOut: '18:08', location: 'Office', notes: '' },
+      1: { status: 'present', checkIn: '09:05', checkOut: '18:05', location: 'Office' },
+      2: { status: 'present', checkIn: '09:00', checkOut: '18:08', location: 'Office' },
       3: { status: 'late', checkIn: '09:20', checkOut: '18:00', location: 'Office', notes: 'Traffic delay' },
-      4: { status: 'present', checkIn: '08:55', checkOut: '17:45', location: 'Office', notes: '' },
+      4: { status: 'present', checkIn: '08:55', checkOut: '17:45', location: 'Office' },
       5: { status: 'leave', checkIn: '', checkOut: '', location: '', notes: 'Vacation day' },
-      8: { status: 'present', checkIn: '09:10', checkOut: '18:15', location: 'Remote', notes: 'Worked from home' },
-      9: { status: 'late', checkIn: '09:25', checkOut: '18:30', location: 'Office', notes: 'Doctor appointment' },
-      10: { status: 'present', checkIn: '09:02', checkOut: '18:00', location: 'Office', notes: '' },
+      8: { status: 'present', checkIn: '09:10', checkOut: '18:15', location: 'Remote' },
+      9: { status: 'late', checkIn: '09:25', checkOut: '18:30', location: 'Office' },
+      10: { status: 'present', checkIn: '09:02', checkOut: '18:00', location: 'Office' },
       12: { status: 'absent', checkIn: '', checkOut: '', location: '', notes: 'Sick day' },
-      15: { status: 'present', checkIn: '09:00', checkOut: '17:30', location: 'Office', notes: 'Half day' },
-      19: { status: 'leave', checkIn: '', checkOut: '', location: '', notes: 'Personal leave' }
+      15: { status: 'present', checkIn: '09:00', checkOut: '17:30', location: 'Office' }
     };
     
     return attendanceData[dateKey] || null;
   };
 
-  // Get event styling
   const getEventStyle = (status: string) => {
     const styles = {
       'present': { bg: 'bg-green-500', text: 'text-white', label: 'Present' },
@@ -77,7 +109,6 @@ export default function AttendancePage() {
     return styles[status as keyof typeof styles] || styles.present;
   };
 
-  // Calculate stats
   const calculateStats = () => {
     const days = getCalendarDays().filter(day => 
       day.getMonth() === currentDate.getMonth() && day <= new Date()
@@ -106,10 +137,9 @@ export default function AttendancePage() {
   return (
     <Layout>
       <div className="space-y-4">
-        {/* Header Bar - Google Calendar Style */}
+        {/* Header Bar */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between">
-            {/* Left: Navigation */}
             <div className="flex items-center space-x-4">
               <button onClick={() => navigateDate(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
                 ◀
@@ -122,12 +152,10 @@ export default function AttendancePage() {
               </button>
             </div>
 
-            {/* Center: Month + Year */}
             <h1 className="text-2xl font-bold text-gray-900">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h1>
 
-            {/* Right: View toggles */}
             <div className="flex bg-gray-100 rounded-lg p-1">
               {['Day', 'Week', 'Month'].map((view) => (
                 <button
@@ -144,13 +172,11 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content */}
         <div className="flex gap-4">
-          {/* Calendar - Google Calendar Style */}
           <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200">
             {viewMode === 'Month' && (
               <div className="p-4">
-                {/* Day Headers */}
                 <div className="grid grid-cols-7 gap-px mb-2">
                   {dayNames.map((day) => (
                     <div key={day} className="p-3 text-center text-sm font-medium text-gray-500 bg-gray-50">
@@ -159,7 +185,6 @@ export default function AttendancePage() {
                   ))}
                 </div>
 
-                {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-px bg-gray-200">
                   {days.map((day, index) => {
                     const event = getAttendanceEvent(day);
@@ -173,14 +198,12 @@ export default function AttendancePage() {
                           isToday ? 'ring-2 ring-primary-500 ring-inset' : ''
                         } ${!isCurrentMonth ? 'bg-gray-50' : ''}`}
                       >
-                        {/* Date number (top-right) */}
                         <div className={`text-right text-sm font-medium mb-1 ${
                           isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                         } ${isToday ? 'text-primary-600 font-bold' : ''}`}>
                           {day.getDate()}
                         </div>
                         
-                        {/* Attendance Event Block - Google Calendar Style */}
                         {event && isCurrentMonth && (
                           <div
                             onClick={() => handleEventClick(event, day)}
@@ -203,7 +226,6 @@ export default function AttendancePage() {
               </div>
             )}
 
-            {/* Week/Day View Placeholders */}
             {viewMode !== 'Month' && (
               <div className="p-4">
                 <div className="text-center py-20 text-gray-500">
@@ -215,41 +237,49 @@ export default function AttendancePage() {
             )}
           </div>
 
-          {/* Mini Summary Panel */}
-          <div className="w-64 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+          {/* Sidebar */}
+          <div className="w-80 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <span className="mr-2">📊</span>
+              Monthly Summary
+            </h3>
             
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <span>✅</span>
-                  <span className="text-sm text-gray-700">Present</span>
-                </div>
-                <span className="text-sm font-medium">{stats.present}</span>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <div className="text-xl font-bold text-green-600">✅ {stats.present}</div>
+                <div className="text-sm text-green-700 font-medium">Present</div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <span>⏰</span>
-                  <span className="text-sm text-gray-700">Late</span>
-                </div>
-                <span className="text-sm font-medium">{stats.late}</span>
+              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                <div className="text-xl font-bold text-yellow-600">⏰ {stats.late}</div>
+                <div className="text-sm text-yellow-700 font-medium">Late</div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <span>❌</span>
-                  <span className="text-sm text-gray-700">Absent</span>
-                </div>
-                <span className="text-sm font-medium">{stats.absent}</span>
+              <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+                <div className="text-xl font-bold text-red-600">❌ {stats.absent}</div>
+                <div className="text-sm text-red-700 font-medium">Absent</div>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <span>🌴</span>
-                  <span className="text-sm text-gray-700">Leave</span>
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="text-xl font-bold text-blue-600">🌴 {stats.leave}</div>
+                <div className="text-sm text-blue-700 font-medium">Leave</div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h6 className="text-sm font-medium text-purple-900 mb-2">Total Hours Worked</h6>
+                <div className="text-2xl font-bold text-purple-600">{(stats.present + stats.late) * 8.5}h</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h6 className="text-sm font-medium text-gray-900 mb-2">Attendance Rate</h6>
+                <div className="text-2xl font-bold text-gray-600">
+                  {(() => {
+                    const workingDays = stats.present + stats.late + stats.absent;
+                    return workingDays > 0 ? Math.round(((stats.present + stats.late) / workingDays) * 100) : 0;
+                  })()}%
                 </div>
-                <span className="text-sm font-medium">{stats.leave}</span>
               </div>
             </div>
           </div>

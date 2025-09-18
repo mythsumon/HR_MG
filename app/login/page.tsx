@@ -3,16 +3,30 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import LoginTransition from '@/components/LoginTransition';
 
 export default function LoginPage() {
   const router = useRouter();
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+
+  // Check if user is already authenticated on component mount
+  React.useEffect(() => {
+    const userRole = localStorage.getItem('userRole');
+    const userName = localStorage.getItem('userName');
+    
+    if (userRole && userName && !isAuthenticating) {
+      // User is already authenticated, redirect to dashboard
+      router.replace('/dashboard');
+    }
+  }, [router, isAuthenticating]);
 
   // Pre-defined accounts
   const accounts = [
@@ -47,8 +61,15 @@ export default function LoginPage() {
       localStorage.setItem('userAvatar', account.avatar);
       localStorage.setItem('userEmail', account.email);
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Set user info for transition
+      setUserInfo({
+        name: account.name,
+        role: account.role === 'manager' ? 'HR Manager' : 'Employee',
+        avatar: account.avatar
+      });
+      
+      // Start authentication transition
+      setIsAuthenticating(true);
     } else {
       alert('Invalid email or password. Please try:\n\nEmployee Account:\nemail: employee@company.com\npassword: employee123\n\nManager Account:\nemail: manager@company.com\npassword: manager123');
     }
@@ -65,7 +86,15 @@ export default function LoginPage() {
       localStorage.setItem('userAvatar', account.avatar);
       localStorage.setItem('userEmail', account.email);
       
-      router.push('/dashboard');
+      // Set user info for transition
+      setUserInfo({
+        name: account.name,
+        role: account.role === 'manager' ? 'HR Manager' : 'Employee',
+        avatar: account.avatar
+      });
+      
+      // Start authentication transition
+      setIsAuthenticating(true);
     }
   };
 
@@ -438,6 +467,15 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      
+      {/* Login Transition Overlay */}
+      <LoginTransition 
+        isAuthenticated={isAuthenticating}
+        userInfo={userInfo}
+        onTransitionComplete={() => {
+          setIsAuthenticating(false);
+        }}
+      />
     </div>
   );
 }

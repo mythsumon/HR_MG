@@ -20,7 +20,7 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   // Core Group
   { name: 'Dashboard', href: '/dashboard', icon: '🏠', role: 'all', group: 'core' },
-  { name: 'Employees', href: '/employees', icon: '👥', role: 'all', group: 'core' },
+  { name: 'Employees', href: '/employees', icon: '👥', role: 'manager', group: 'core' },
   { name: 'Attendance', href: '/attendance', icon: '⏰', role: 'all', group: 'core' },
   { name: 'Tasks', href: '/tasks', icon: '📋', role: 'all', group: 'core' },
   
@@ -28,6 +28,10 @@ const navigation: NavigationItem[] = [
   { name: 'Leave Requests', href: '/leave', icon: '📅', role: 'all', group: 'hr', badge: '3' },
   { name: 'Payroll', href: '/payroll', icon: '💰', role: 'manager', group: 'hr' },
   { name: 'Reports', href: '/reports', icon: '📊', role: 'manager', group: 'hr' },
+  { name: 'Notice Board', href: '/notice-board', icon: '📢', role: 'all', group: 'hr', badge: 'NEW' },
+  { name: 'FAQ', href: '/faq', icon: '❓', role: 'all', group: 'hr' },
+  { name: 'Q&A / Helpdesk', href: '/helpdesk', icon: '💬', role: 'all', group: 'hr' },
+  { name: 'Settings', href: '/settings', icon: '⚙️', role: 'all', group: 'hr' },
   
   // HR Manager specific items
   { name: 'Approvals', href: '/approvals', icon: '✅', role: 'manager', group: 'hr' },
@@ -45,17 +49,45 @@ export default function Layout({ children }: LayoutProps) {
   const [userRole, setUserRole] = React.useState<'employee' | 'manager'>('employee');
   const [userName, setUserName] = React.useState('John Doe');
   const [userAvatar, setUserAvatar] = React.useState('JD');
+  const [currentView, setCurrentView] = React.useState<'employee' | 'hr'>('employee'); // New view state
   
   // Load user data from localStorage on component mount
   React.useEffect(() => {
     const storedRole = localStorage.getItem('userRole') as 'employee' | 'manager';
     const storedName = localStorage.getItem('userName');
     const storedAvatar = localStorage.getItem('userAvatar');
+    const storedView = localStorage.getItem('currentView') as 'employee' | 'hr';
+    const storedDarkMode = localStorage.getItem('darkMode') === 'true';
+    const storedLanguage = localStorage.getItem('language') || 'en';
     
     if (storedRole) setUserRole(storedRole);
     if (storedName) setUserName(storedName);
     if (storedAvatar) setUserAvatar(storedAvatar);
+    setDarkMode(storedDarkMode);
+    setLanguage(storedLanguage);
+    
+    // If HR manager, default to employee view, otherwise keep employee view
+    if (storedRole === 'manager') {
+      setCurrentView(storedView || 'employee'); // Default to employee view for HR
+    } else {
+      setCurrentView('employee'); // Regular employees only have employee view
+    }
   }, []);
+
+  // Apply dark mode to document
+  React.useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
+
+  // Save language preference
+  React.useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
   
   // Function to switch to HR Manager view
   const switchToManagerView = () => {
@@ -71,13 +103,41 @@ export default function Layout({ children }: LayoutProps) {
     localStorage.setItem('userEmail', 'manager@company.com');
   };
   
-  // Filter navigation based on user role
-  const filteredNavigation = navigation.filter(item => 
-    item.role === 'all' || item.role === userRole
-  );
+  // Function to toggle between employee and HR view (only for managers)
+  const toggleView = () => {
+    if (userRole !== 'manager') return; // Only managers can switch views
+    
+    const newView = currentView === 'employee' ? 'hr' : 'employee';
+    setCurrentView(newView);
+    localStorage.setItem('currentView', newView);
+    
+    // Dispatch custom event for real-time updates
+    window.dispatchEvent(new CustomEvent('viewChanged', {
+      detail: { view: newView }
+    }));
+  };
+  
+  // Filter navigation based on current view
+  const getFilteredNavigation = () => {
+    if (currentView === 'employee' || userRole === 'employee') {
+      // Employee view: show only employee-relevant items
+      return navigation.filter(item => 
+        item.role === 'all' || item.role === 'employee'
+      );
+    } else {
+      // HR view: show all items based on user role
+      return navigation.filter(item => 
+        item.role === 'all' || item.role === userRole
+      );
+    }
+  };
+
+  const filteredNavigation = getFilteredNavigation();
 
   return (
-    <div className="min-h-screen bg-gray-50 grid grid-cols-1 lg:grid-cols-[256px_1fr]">
+    <div className={`min-h-screen grid grid-cols-1 lg:grid-cols-[256px_1fr] ${
+      darkMode ? 'dark bg-gray-900' : 'bg-gray-50'
+    }`}>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -87,11 +147,17 @@ export default function Layout({ children }: LayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto lg:scrollbar-hide ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:block`}>
+      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform shadow-lg transition-transform duration-300 lg:relative lg:translate-x-0 lg:h-screen lg:overflow-y-auto lg:scrollbar-hide ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:block ${
+        darkMode ? 'bg-gray-800 border-r border-gray-700' : 'bg-white'
+      }`}>
         <div className="flex h-full flex-col">
           {/* User Profile Section */}
-          <div className="border-b border-gray-200 p-4">
-            <div className="flex items-center">
+          <div className={`border-b p-4 ${
+            darkMode ? 'border-gray-700' : 'border-gray-200'
+          }`}>
+            <div className="flex items-center mb-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">{userAvatar}</span>
               </div>
@@ -101,22 +167,112 @@ export default function Layout({ children }: LayoutProps) {
                   className="block"
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <p className="text-sm font-medium text-gray-900 truncate hover:text-primary-600 transition-colors cursor-pointer">
+                  <p className={`text-sm font-medium truncate hover:text-primary-600 transition-colors cursor-pointer ${
+                    darkMode ? 'text-white' : 'text-gray-900'
+                  }`}>
                     {userName}
                   </p>
                 </Link>
-                <p className="text-xs text-gray-500 truncate">
+                <p className={`text-xs truncate ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   {userRole === 'manager' ? 'HR Manager' : 'Employee'}
                 </p>
               </div>
             </div>
+            
+            {/* Language and Theme Section - Under User Profile */}
+            <div className="space-y-3 mb-4">
+              {/* Language Selector */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-medium uppercase tracking-wider ${
+                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>Language</span>
+                </div>
+                <select 
+                  value={language} 
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className={`w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' 
+                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <option value="en">🇺🇸 English</option>
+                  <option value="ko">🇰🇷 한국어 (Korean)</option>
+                  <option value="mn">🇲🇳 Монгол (Mongolia)</option>
+                  <option value="my">🇲🇲 မြန်မာစာ (Myanmar)</option>
+                </select>
+              </div>
+              
+              {/* Theme Toggle */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-xs font-medium uppercase tracking-wider ${
+                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>Theme</span>
+                </div>
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' 
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <span className="text-lg mr-3">{darkMode ? '🌙' : '☀️'}</span>
+                    <span className={`font-medium ${
+                      darkMode ? 'text-gray-200' : 'text-gray-700'
+                    }`}>{darkMode ? 'Dark Mode' : 'Light Mode'}</span>
+                  </div>
+                  <div className={`w-10 h-5 rounded-full transition-colors duration-200 relative ${
+                    darkMode ? 'bg-primary-600' : 'bg-gray-300'
+                  }`}>
+                    <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${
+                      darkMode ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}></div>
+                  </div>
+                </button>
+              </div>
+            </div>
+            
+            {/* View Toggle Button for HR Managers */}
+            {userRole === 'manager' && (
+              <button
+                onClick={toggleView}
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                  currentView === 'hr' 
+                    ? 'bg-purple-50 text-purple-700 border border-purple-200' 
+                    : 'bg-blue-50 text-blue-700 border border-blue-200'
+                }`}
+              >
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">
+                    {currentView === 'hr' ? '👨‍💼' : '👤'}
+                  </span>
+                  <span className="font-medium">
+                    {currentView === 'hr' ? 'HR View' : 'Employee View'}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-xs text-gray-500 mr-1">Switch</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                </div>
+              </button>
+            )}
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hide">
             {/* Core Group */}
             <div className="mb-4">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <h3 className={`px-3 text-xs font-semibold uppercase tracking-wider mb-2 ${
+                darkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
                 Main
               </h3>
               {filteredNavigation.filter(item => item.group === 'core').map((item) => {
@@ -127,20 +283,30 @@ export default function Layout({ children }: LayoutProps) {
                     href={item.href}
                     className={`group flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative ${
                       isActive
-                        ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? darkMode 
+                          ? 'bg-primary-900 text-primary-300 border-r-2 border-primary-500'
+                          : 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
+                        : darkMode
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                     onClick={() => setSidebarOpen(false)}
                   >
                     <span className="text-lg mr-3">{item.icon}</span>
                     <span className="flex-1 truncate">{item.name}</span>
                     {item.badge && (
-                      <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                      <span className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
+                        item.badge === 'NEW' 
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
                         {item.badge}
                       </span>
                     )}
                     {isActive && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600 rounded-r"></div>
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-r ${
+                        darkMode ? 'bg-primary-500' : 'bg-primary-600'
+                      }`}></div>
                     )}
                   </Link>
                 );
@@ -149,7 +315,9 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* HR Functions Group */}
             <div className="mb-4">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <h3 className={`px-3 text-xs font-semibold uppercase tracking-wider mb-2 ${
+                darkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
                 HR Functions
               </h3>
               {filteredNavigation.filter(item => item.group === 'hr').map((item) => {
@@ -160,20 +328,30 @@ export default function Layout({ children }: LayoutProps) {
                     href={item.href}
                     className={`group flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative ${
                       isActive
-                        ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? darkMode 
+                          ? 'bg-primary-900 text-primary-300 border-r-2 border-primary-500'
+                          : 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
+                        : darkMode
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                     onClick={() => setSidebarOpen(false)}
                   >
                     <span className="text-lg mr-3">{item.icon}</span>
                     <span className="flex-1 truncate">{item.name}</span>
                     {item.badge && (
-                      <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                      <span className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
+                        item.badge === 'NEW' 
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
                         {item.badge}
                       </span>
                     )}
                     {isActive && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600 rounded-r"></div>
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-r ${
+                        darkMode ? 'bg-primary-500' : 'bg-primary-600'
+                      }`}></div>
                     )}
                   </Link>
                 );
@@ -182,60 +360,33 @@ export default function Layout({ children }: LayoutProps) {
           </nav>
 
           {/* System Section */}
-          <div className="border-t border-gray-200 p-3 space-y-2">
-            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+          <div className={`border-t p-3 space-y-2 ${
+            darkMode ? 'border-gray-700' : 'border-gray-200'
+          }`}>
+            <h3 className={`px-3 text-xs font-semibold uppercase tracking-wider mb-2 ${
+              darkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               System
             </h3>
-            
-            {/* Settings */}
-            <Link
-              href="/settings"
-              className="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <span className="text-lg mr-3">⚙️</span>
-              Settings
-            </Link>
-            
-            {/* Language Selector */}
-            <div className="px-3 py-2">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-500">Language</span>
-              </div>
-              <select 
-                value={language} 
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              >
-                <option value="en">🇺🇸 English</option>
-                <option value="es">🇪🇸 Español</option>
-                <option value="fr">🇫🇷 Français</option>
-              </select>
-            </div>
-            
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors w-full justify-between"
-            >
-              <div className="flex items-center">
-                <span className="text-lg mr-3">{darkMode ? '🌙' : '☀️'}</span>
-                Theme
-              </div>
-              <span className="text-xs text-gray-500">{darkMode ? 'Dark' : 'Light'}</span>
-            </button>
             
             {/* Sign Out */}
             <button
               onClick={() => {
-                // Clear user data from localStorage
+                // Clear user data from localStorage (Session Management Specification)
                 localStorage.removeItem('userRole');
                 localStorage.removeItem('userName');
                 localStorage.removeItem('userAvatar');
                 localStorage.removeItem('userEmail');
-                router.push('/login');
+                localStorage.removeItem('darkMode');
+                localStorage.removeItem('language');
+                // Use replace to prevent back navigation
+                router.replace('/login');
               }}
-              className="flex items-center px-3 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50 hover:text-red-700 transition-colors w-full font-medium"
+              className={`flex items-center px-3 py-2 text-sm rounded-lg transition-colors w-full font-medium ${
+                darkMode 
+                  ? 'text-red-400 hover:bg-red-900 hover:text-red-300'
+                  : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+              }`}
             >
               <span className="text-lg mr-3">🚪</span>
               Sign Out
@@ -247,11 +398,15 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main content */}
       <div className="flex flex-col min-w-0 h-screen">
         {/* Top header for mobile */}
-        <header className="bg-white shadow-sm border-b border-gray-200 lg:hidden flex-shrink-0">
+        <header className={`shadow-sm border-b lg:hidden flex-shrink-0 ${
+          darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex h-16 items-center justify-between px-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-600 hover:text-gray-900"
+              className={`transition-colors ${
+                darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -263,14 +418,19 @@ export default function Layout({ children }: LayoutProps) {
 
             <button
               onClick={() => {
-                // Clear user data from localStorage
+                // Clear user data from localStorage (Session Management Specification)
                 localStorage.removeItem('userRole');
                 localStorage.removeItem('userName');
                 localStorage.removeItem('userAvatar');
                 localStorage.removeItem('userEmail');
-                router.push('/login');
+                localStorage.removeItem('darkMode');
+                localStorage.removeItem('language');
+                // Use replace to prevent back navigation
+                router.replace('/login');
               }}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className={`text-sm transition-colors ${
+                darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
               Sign Out
             </button>
@@ -278,7 +438,9 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <main className={`flex-1 p-4 lg:p-6 overflow-y-auto ${
+          darkMode ? 'bg-gray-900' : 'bg-gray-50'
+        }`}>
           {children}
         </main>
       </div>
