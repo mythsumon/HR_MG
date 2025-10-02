@@ -3,101 +3,209 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  dueDate: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'in-progress' | 'completed' | 'failed';
-  progress: number;
-  assignedBy: string;
-  comments?: Array<{ author: string; text: string; date: string }>;
-}
+import { 
+  Task, 
+  Project, 
+  StatusChip, 
+  PriorityChip, 
+  ProgressBar, 
+  Avatar, 
+  TaskCard, 
+  TaskSummaryCard, 
+  KanbanColumn 
+} from '@/components/TaskComponents';
+import { TaskDetailModal } from '@/components/TaskDetailModal';
 
 export default function TasksPage() {
   const router = useRouter();
-  const [userRole, setUserRole] = useState<'employee' | 'manager'>('employee');
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [userRole, setUserRole] = useState<'employee' | 'hr'>('employee');
+  const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<'kanban' | 'mobile'>('kanban');
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [activeTab, setActiveTab] = useState('pending');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTime, setFilterTime] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  
+  const [projects] = useState<Project[]>([
+    { id: 'proj-1', name: 'Website Redesign', description: 'Company website overhaul', color: 'bg-blue-100', taskCount: 8 },
+    { id: 'proj-2', name: 'Mobile App', description: 'Employee mobile application', color: 'bg-green-100', taskCount: 12 },
+    { id: 'proj-3', name: 'HR System', description: 'Internal HR management system', color: 'bg-purple-100', taskCount: 6 },
+    { id: 'proj-4', name: 'Marketing Campaign', description: 'Q4 marketing initiatives', color: 'bg-orange-100', taskCount: 4 }
+  ]);
+
   const [tasks, setTasks] = useState<Task[]>([
     {
-      id: 1,
-      title: 'Complete Q3 Performance Review',
-      description: 'Fill out self-assessment form and submit performance review documents',
-      dueDate: '2024-09-25',
+      id: 'task-001',
+      title: 'Design Homepage Layout',
+      description: 'Create wireframes and mockups for the new homepage design',
+      project: 'Website Redesign',
+      assignee: { id: 'emp-1', name: 'John Doe', avatar: undefined },
+      dueDate: '2024-10-15',
       priority: 'high',
       status: 'in-progress',
-      progress: 60,
-      assignedBy: 'Sarah Johnson',
+      progress: 65,
+      estimatedHours: 40,
+      actualHours: 26,
+      tags: ['design', 'frontend', 'urgent'],
       comments: [
-        { author: 'Sarah Johnson', text: 'Please focus on achievements section', date: '2024-09-15' }
-      ]
+        { id: 'c1', author: 'Sarah Johnson', text: 'Please ensure mobile responsiveness', date: '2024-09-20' }
+      ],
+      subtasks: [
+        { id: 'st1', title: 'Create wireframes', completed: true },
+        { id: 'st2', title: 'Design mockups', completed: true },
+        { id: 'st3', title: 'Review with team', completed: false }
+      ],
+      createdBy: 'Sarah Johnson',
+      createdAt: '2024-09-15',
+      updatedAt: '2024-09-25'
     },
     {
-      id: 2,
-      title: 'Update Employee Handbook Acknowledgment',
-      description: 'Review and acknowledge the updated employee handbook',
-      dueDate: '2024-09-20',
+      id: 'task-002',
+      title: 'Implement User Authentication',
+      description: 'Set up secure login and registration system for mobile app',
+      project: 'Mobile App',
+      assignee: { id: 'emp-2', name: 'Jane Smith' },
+      dueDate: '2024-10-20',
+      priority: 'high',
+      status: 'pending',
+      progress: 0,
+      estimatedHours: 60,
+      actualHours: 0,
+      tags: ['backend', 'security', 'authentication'],
+      comments: [],
+      subtasks: [
+        { id: 'st4', title: 'Set up OAuth', completed: false },
+        { id: 'st5', title: 'Implement JWT tokens', completed: false },
+        { id: 'st6', title: 'Add password reset', completed: false }
+      ],
+      createdBy: 'Mike Johnson',
+      createdAt: '2024-09-18',
+      updatedAt: '2024-09-18'
+    },
+    {
+      id: 'task-003',
+      title: 'Employee Onboarding Module',
+      description: 'Create digital onboarding process for new employees',
+      project: 'HR System',
+      assignee: { id: 'emp-3', name: 'Mike Johnson' },
+      dueDate: '2024-10-10',
       priority: 'medium',
       status: 'completed',
       progress: 100,
-      assignedBy: 'HR Team'
+      estimatedHours: 80,
+      actualHours: 75,
+      tags: ['frontend', 'forms', 'workflow'],
+      comments: [
+        { id: 'c2', author: 'HR Team', text: 'Great work on the user interface!', date: '2024-09-22' }
+      ],
+      subtasks: [
+        { id: 'st7', title: 'Design form layouts', completed: true },
+        { id: 'st8', title: 'Implement validation', completed: true },
+        { id: 'st9', title: 'Add document upload', completed: true }
+      ],
+      createdBy: 'Sarah Johnson',
+      createdAt: '2024-08-15',
+      updatedAt: '2024-09-22'
     },
     {
-      id: 3,
-      title: 'Submit Monthly Expense Report',
-      description: 'Upload receipts and submit monthly expense report for August',
+      id: 'task-004',
+      title: 'Social Media Content Calendar',
+      description: 'Plan and schedule Q4 social media content across all platforms',
+      project: 'Marketing Campaign',
+      assignee: { id: 'emp-4', name: 'Sarah Wilson' },
       dueDate: '2024-09-30',
       priority: 'medium',
-      status: 'pending',
-      progress: 0,
-      assignedBy: 'Finance Team'
-    },
-    {
-      id: 4,
-      title: 'Security Training Completion',
-      description: 'Complete mandatory cybersecurity training modules',
-      dueDate: '2024-10-15',
-      priority: 'high',
       status: 'failed',
-      progress: 25,
-      assignedBy: 'IT Security Team'
+      progress: 30,
+      estimatedHours: 30,
+      actualHours: 12,
+      tags: ['marketing', 'content', 'social-media'],
+      comments: [
+        { id: 'c3', author: 'Marketing Lead', text: 'Need to reschedule due to budget constraints', date: '2024-09-25' }
+      ],
+      subtasks: [
+        { id: 'st10', title: 'Content audit', completed: true },
+        { id: 'st11', title: 'Create content calendar', completed: false },
+        { id: 'st12', title: 'Schedule posts', completed: false }
+      ],
+      createdBy: 'Marketing Lead',
+      createdAt: '2024-09-01',
+      updatedAt: '2024-09-25'
     },
     {
-      id: 5,
-      title: 'Team Building Event Planning',
-      description: 'Organize quarterly team building activities',
-      dueDate: '2024-10-05',
+      id: 'task-005',
+      title: 'Database Optimization',
+      description: 'Optimize database queries and improve performance',
+      project: 'Website Redesign',
+      assignee: { id: 'emp-5', name: 'Alex Chen' },
+      dueDate: '2024-11-01',
       priority: 'low',
       status: 'pending',
       progress: 0,
-      assignedBy: 'HR Team'
+      estimatedHours: 35,
+      actualHours: 0,
+      tags: ['backend', 'database', 'performance'],
+      comments: [],
+      subtasks: [
+        { id: 'st13', title: 'Analyze current queries', completed: false },
+        { id: 'st14', title: 'Implement indexing', completed: false },
+        { id: 'st15', title: 'Test performance', completed: false }
+      ],
+      createdBy: 'Tech Lead',
+      createdAt: '2024-09-20',
+      updatedAt: '2024-09-20'
+    },
+    {
+      id: 'task-006',
+      title: 'Push Notification System',
+      description: 'Implement real-time push notifications for mobile app',
+      project: 'Mobile App',
+      assignee: { id: 'emp-6', name: 'David Kim' },
+      dueDate: '2024-10-25',
+      priority: 'medium',
+      status: 'in-progress',
+      progress: 40,
+      estimatedHours: 45,
+      actualHours: 18,
+      tags: ['mobile', 'notifications', 'realtime'],
+      comments: [
+        { id: 'c4', author: 'Product Manager', text: 'Focus on user preferences first', date: '2024-09-23' }
+      ],
+      subtasks: [
+        { id: 'st16', title: 'Set up FCM', completed: true },
+        { id: 'st17', title: 'Implement notification service', completed: false },
+        { id: 'st18', title: 'Add user preferences', completed: false }
+      ],
+      createdBy: 'Product Manager',
+      createdAt: '2024-09-10',
+      updatedAt: '2024-09-24'
     }
   ]);
+
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
+    project: '',
     assignee: '',
     dueDate: '',
-    priority: 'medium',
+    priority: 'medium' as Task['priority'],
+    estimatedHours: 0,
+    tags: '',
     attachments: [] as File[]
   });
 
   // Filter and search logic
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.assignee.name.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
+    const matchesProject = selectedProject === 'all' || task.project === selectedProject;
     
     const matchesTime = filterTime === 'all' || (() => {
       const taskDate = new Date(task.dueDate);
@@ -114,10 +222,13 @@ export default function TasksPage() {
       }
     })();
     
-    return matchesSearch && matchesStatus && matchesTime;
+    // For employee view, only show their own tasks
+    const matchesUser = userRole === 'hr' || task.assignee.name === 'John Doe'; // Mock current user
+    
+    return matchesSearch && matchesStatus && matchesTime && matchesProject && matchesUser;
   });
 
-  // Group tasks by status
+  // Group tasks by status and project
   const tasksByStatus = {
     pending: filteredTasks.filter(task => task.status === 'pending'),
     'in-progress': filteredTasks.filter(task => task.status === 'in-progress'),
@@ -125,10 +236,27 @@ export default function TasksPage() {
     failed: filteredTasks.filter(task => task.status === 'failed')
   };
 
-  // Check screen size for mobile view
+  const tasksByProject = projects.reduce((acc, project) => {
+    acc[project.name] = filteredTasks.filter(task => task.project === project.name);
+    return acc;
+  }, {} as Record<string, Task[]>);
+
+  // Calculate analytics
+  const analytics = {
+    totalTasks: tasks.length,
+    activeTasks: tasks.filter(t => t.status === 'pending' || t.status === 'in-progress').length,
+    completedTasks: tasks.filter(t => t.status === 'completed').length,
+    overdueTasks: tasks.filter(t => new Date(t.dueDate) < new Date() && t.status !== 'completed').length,
+    totalHours: tasks.reduce((sum, t) => sum + t.estimatedHours, 0),
+    loggedHours: tasks.reduce((sum, t) => sum + t.actualHours, 0)
+  };
+
+  // Auto-detect mobile view
   React.useEffect(() => {
     const checkScreenSize = () => {
-      setViewMode(window.innerWidth < 768 ? 'mobile' : 'kanban');
+      if (window.innerWidth < 768) {
+        setViewMode('list');
+      }
     };
     
     checkScreenSize();
@@ -147,168 +275,73 @@ export default function TasksPage() {
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e: React.DragEvent, newStatus: Task['status']) => {
-    e.preventDefault();
+  const handleDrop = (newStatus: Task['status']) => {
     if (draggedTask && draggedTask.status !== newStatus) {
       setTasks(prev => prev.map(task => 
         task.id === draggedTask.id 
-          ? { ...task, status: newStatus, progress: newStatus === 'completed' ? 100 : task.progress }
+          ? { 
+              ...task, 
+              status: newStatus, 
+              progress: newStatus === 'completed' ? 100 : task.progress,
+              updatedAt: new Date().toISOString().split('T')[0]
+            }
           : task
       ));
     }
     setDraggedTask(null);
   };
 
+  const handleStatusChange = (taskId: string, status: Task['status']) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { 
+            ...task, 
+            status, 
+            progress: status === 'completed' ? 100 : status === 'pending' ? 0 : task.progress,
+            updatedAt: new Date().toISOString().split('T')[0]
+          }
+        : task
+    ));
+  };
+
   const handleAddTask = () => {
     const newTaskItem: Task = {
-      id: Math.max(...tasks.map(t => t.id)) + 1,
+      id: `task-${String(tasks.length + 1).padStart(3, '0')}`,
       title: newTask.title,
       description: newTask.description,
+      project: newTask.project,
+      assignee: { 
+        id: 'emp-new', 
+        name: newTask.assignee, 
+        avatar: undefined 
+      },
       dueDate: newTask.dueDate,
-      priority: newTask.priority as 'high' | 'medium' | 'low',
+      priority: newTask.priority,
       status: 'pending',
       progress: 0,
-      assignedBy: 'Self-assigned'
+      estimatedHours: newTask.estimatedHours,
+      actualHours: 0,
+      tags: newTask.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      comments: [],
+      subtasks: [],
+      createdBy: userRole === 'hr' ? 'HR Manager' : 'Self-assigned',
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0]
     };
     
     setTasks(prev => [...prev, newTaskItem]);
     setNewTask({
       title: '',
       description: '',
+      project: '',
       assignee: '',
       dueDate: '',
       priority: 'medium',
+      estimatedHours: 0,
+      tags: '',
       attachments: []
     });
     setShowAddTaskModal(false);
-  };
-
-  // Task Card Component
-  const TaskCard = ({ task }: { task: Task }) => {
-    const getStatusColors = (status: Task['status']) => {
-      switch (status) {
-        case 'pending': return 'border-l-gray-400 bg-gray-50';
-        case 'in-progress': return 'border-l-blue-500 bg-blue-50';
-        case 'completed': return 'border-l-green-500 bg-green-50';
-        case 'failed': return 'border-l-red-500 bg-red-50';
-        default: return 'border-l-gray-400 bg-gray-50';
-      }
-    };
-
-    const getPriorityColors = (priority: Task['priority']) => {
-      switch (priority) {
-        case 'high': return 'bg-red-100 text-red-700 border-red-200';
-        case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-        case 'low': return 'bg-green-100 text-green-700 border-green-200';
-        default: return 'bg-gray-100 text-gray-700 border-gray-200';
-      }
-    };
-
-    return (
-      <div 
-        className={`bg-white rounded-lg shadow-sm border-l-4 p-4 mb-3 cursor-pointer hover:shadow-md transition-all duration-200 ${getStatusColors(task.status)}`}
-        draggable
-        onDragStart={(e) => handleDragStart(e, task)}
-        onClick={() => setSelectedTask(task)}
-      >
-        {/* Task Header */}
-        <div className="mb-3">
-          <h3 className="font-bold text-gray-900 mb-2 leading-tight">{task.title}</h3>
-          <div className="flex items-center justify-between mb-2">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getPriorityColors(task.priority)}`}>
-              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-            </span>
-            <span className="text-xs text-gray-500">
-              📅 {new Date(task.dueDate).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-
-        {/* Task Body */}
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {task.description}
-        </p>
-
-        {/* Assigned By */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs text-gray-500">
-            👤 {task.assignedBy}
-          </span>
-        </div>
-
-        {/* Footer Buttons */}
-        <div className="flex space-x-2">
-          <button 
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-medium transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedTask(task);
-            }}
-          >
-            View
-          </button>
-          <button 
-            className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded text-xs font-medium transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedTask(task);
-            }}
-          >
-            Update
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Column Component
-  const Column = ({ title, status, tasks: columnTasks, color, emoji }: {
-    title: string;
-    status: Task['status'];
-    tasks: Task[];
-    color: string;
-    emoji: string;
-  }) => (
-    <div 
-      className="bg-gray-50 rounded-lg p-4 min-h-96"
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, status)}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-800 flex items-center">
-          <span className="mr-2">{emoji}</span>
-          {title}
-        </h3>
-        <span className={`${color} text-white text-xs font-bold px-2 py-1 rounded-full`}>
-          {columnTasks.length}
-        </span>
-      </div>
-      <div className="space-y-3">
-        {columnTasks.map(task => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-        {columnTasks.length === 0 && (
-          <div className="text-center text-gray-400 py-8">
-            <p className="text-sm">No tasks</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const handleAssignTask = () => {
-    // Mock task assignment
-    console.log('Assigning task:', newTask);
-    setShowAssignModal(false);
-    setNewTask({
-      title: '',
-      description: '',
-      assignee: '',
-      dueDate: '',
-      priority: 'medium',
-      attachments: []
-    });
-    // In real app: API call to create task and send notification
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -320,36 +353,101 @@ export default function TasksPage() {
     }
   };
 
-  // Employee View - New Kanban Interface
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setShowTaskModal(true);
+  };
+
+  const handleUpdateTask = (updatedTask: Task) => {
+    setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
+    if (selectedTask && selectedTask.id === updatedTask.id) {
+      setSelectedTask(updatedTask);
+    }
+  };
+
+  // Employee View - Personal Task Management
   if (userRole === 'employee') {
     return (
       <Layout>
         <div className="space-y-6">
-          {/* Top Bar */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          {/* Employee Header */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-              {/* Title */}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
-                <p className="text-gray-600">Manage and track your assigned tasks</p>
+                <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
+                <p className="text-gray-600 mt-1">Track and manage your assigned tasks</p>
+                <div className="mt-2 text-sm text-gray-500">
+                  You have {tasksByStatus.pending.length} pending, {tasksByStatus['in-progress'].length} in progress, {tasksByStatus.completed.length} completed this week.
+                </div>
               </div>
-
-              {/* Filters and Search */}
+              
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                {/* Status Filter */}
+                <button
+                  onClick={() => setUserRole('hr')}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                >
+                  🏢 Switch to HR View
+                </button>
+                
+                <button
+                  onClick={() => setShowAddTaskModal(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <span>➕</span>
+                  <span>Add Task</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Employee Summary */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <TaskSummaryCard 
+              title="Pending" 
+              value={tasksByStatus.pending.length} 
+              icon="🟤" 
+              color="bg-gray-50" 
+              subtitle="To start"
+            />
+            <TaskSummaryCard 
+              title="In Progress" 
+              value={tasksByStatus['in-progress'].length} 
+              icon="🔵" 
+              color="bg-blue-50" 
+              subtitle="Working on"
+            />
+            <TaskSummaryCard 
+              title="Completed" 
+              value={tasksByStatus.completed.length} 
+              icon="🟢" 
+              color="bg-green-50" 
+              subtitle="Finished"
+            />
+            <TaskSummaryCard 
+              title="Failed" 
+              value={tasksByStatus.failed.length} 
+              icon="🔴" 
+              color="bg-red-50" 
+              subtitle="Cancelled"
+            />
+          </div>
+
+          {/* Employee Filters */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                 <select 
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">All ▾</option>
+                  <option value="all">All Status ▾</option>
                   <option value="pending">Pending</option>
                   <option value="in-progress">In Progress</option>
                   <option value="completed">Completed</option>
                   <option value="failed">Failed</option>
                 </select>
 
-                {/* Time Filter */}
                 <select 
                   value={filterTime}
                   onChange={(e) => setFilterTime(e.target.value)}
@@ -359,41 +457,99 @@ export default function TasksPage() {
                   <option value="this-week">This Week</option>
                   <option value="overdue">Overdue</option>
                 </select>
+              </div>
 
-                {/* Search */}
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setViewMode('kanban')}
+                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                      viewMode === 'kanban' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    📋 Kanban
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`px-3 py-2 text-sm font-medium transition-colors ${
+                      viewMode === 'list' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    📝 List
+                  </button>
+                </div>
+
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search tasks... 🔍"
+                    placeholder="Search my tasks..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-3 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
                   />
                   <span className="absolute right-3 top-2.5 text-gray-400">🔍</span>
                 </div>
-
-                {/* Add Task Button */}
-                <button
-                  onClick={() => setShowAddTaskModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
-                >
-                  <span>➕</span>
-                  <span>Add Task</span>
-                </button>
               </div>
             </div>
           </div>
 
-          {/* Mobile View - Tabs */}
-          {viewMode === 'mobile' && (
+          {/* Employee Task View */}
+          {viewMode === 'kanban' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KanbanColumn 
+                title="Pending" 
+                status="pending" 
+                tasks={tasksByStatus.pending}
+                viewMode="employee"
+                onTaskClick={handleTaskClick}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
+              />
+              <KanbanColumn 
+                title="In Progress" 
+                status="in-progress" 
+                tasks={tasksByStatus['in-progress']}
+                viewMode="employee"
+                onTaskClick={handleTaskClick}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
+              />
+              <KanbanColumn 
+                title="Completed" 
+                status="completed" 
+                tasks={tasksByStatus.completed}
+                viewMode="employee"
+                onTaskClick={handleTaskClick}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
+              />
+              <KanbanColumn 
+                title="Failed" 
+                status="failed" 
+                tasks={tasksByStatus.failed}
+                viewMode="employee"
+                onTaskClick={handleTaskClick}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
+              />
+            </div>
+          ) : (
+            // Mobile-friendly list view with tabs
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              {/* Tab Navigation */}
               <div className="flex border-b border-gray-200">
                 {[
-                  { key: 'pending', label: 'Pending', count: tasksByStatus.pending.length, emoji: '🟤' },
-                  { key: 'in-progress', label: 'Progress', count: tasksByStatus['in-progress'].length, emoji: '🔵' },
-                  { key: 'completed', label: 'Complete', count: tasksByStatus.completed.length, emoji: '🟢' },
-                  { key: 'failed', label: 'Failed', count: tasksByStatus.failed.length, emoji: '🔴' }
+                  { key: 'pending', label: 'Pending', count: tasksByStatus.pending.length },
+                  { key: 'in-progress', label: 'Progress', count: tasksByStatus['in-progress'].length },
+                  { key: 'completed', label: 'Complete', count: tasksByStatus.completed.length },
+                  { key: 'failed', label: 'Failed', count: tasksByStatus.failed.length }
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -404,260 +560,30 @@ export default function TasksPage() {
                         : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
                   >
-                    <span className="mr-1">{tab.emoji}</span>
-                    {tab.label} ({tab.count})
+                    <StatusChip status={tab.key as Task['status']} size="sm" />
+                    <span className="ml-2">({tab.count})</span>
                   </button>
                 ))}
               </div>
 
-              {/* Tab Content */}
               <div className="p-4">
                 <div className="space-y-3">
                   {tasksByStatus[activeTab as keyof typeof tasksByStatus].map(task => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      viewMode="employee"
+                      onTaskClick={handleTaskClick}
+                      isDraggable={false}
+                    />
                   ))}
+                  
                   {tasksByStatus[activeTab as keyof typeof tasksByStatus].length === 0 && (
                     <div className="text-center text-gray-400 py-8">
-                      <p>No tasks in this category</p>
+                      <p className="text-sm">No tasks in this category</p>
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Desktop View - Kanban Board */}
-          {viewMode === 'kanban' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Column 
-                title="Pending" 
-                status="pending" 
-                tasks={tasksByStatus.pending}
-                color="bg-gray-500"
-                emoji="🟤"
-              />
-              <Column 
-                title="In Progress" 
-                status="in-progress" 
-                tasks={tasksByStatus['in-progress']}
-                color="bg-blue-500"
-                emoji="🔵"
-              />
-              <Column 
-                title="Complete" 
-                status="completed" 
-                tasks={tasksByStatus.completed}
-                color="bg-green-500"
-                emoji="🟢"
-              />
-              <Column 
-                title="Failed" 
-                status="failed" 
-                tasks={tasksByStatus.failed}
-                color="bg-red-500"
-                emoji="🔴"
-              />
-            </div>
-          )}
-
-          {/* Task Detail Modal */}
-          {selectedTask && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setSelectedTask(null)}>
-              <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-semibold text-gray-900">{selectedTask.title}</h3>
-                  <button 
-                    onClick={() => setSelectedTask(null)}
-                    className="text-gray-400 hover:text-gray-600 text-xl"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* Task Info */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Description</h4>
-                    <p className="text-gray-600">{selectedTask.description}</p>
-                  </div>
-                  
-                  {/* Task Details */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Due Date</h4>
-                      <p className="text-gray-600">{new Date(selectedTask.dueDate).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Priority</h4>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${
-                        selectedTask.priority === 'high' ? 'bg-red-100 text-red-700 border-red-200' :
-                        selectedTask.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                        'bg-green-100 text-green-700 border-green-200'
-                      }`}>
-                        {selectedTask.priority.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Progress Checklist */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Progress Checklist</h4>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input type="checkbox" checked={selectedTask.progress >= 25} className="mr-2" readOnly />
-                        <span className={selectedTask.progress >= 25 ? 'text-gray-600' : 'text-gray-400'}>Review task requirements</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input type="checkbox" checked={selectedTask.progress >= 50} className="mr-2" readOnly />
-                        <span className={selectedTask.progress >= 50 ? 'text-gray-600' : 'text-gray-400'}>Begin task execution</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input type="checkbox" checked={selectedTask.progress >= 75} className="mr-2" readOnly />
-                        <span className={selectedTask.progress >= 75 ? 'text-gray-600' : 'text-gray-400'}>Complete draft/initial work</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input type="checkbox" checked={selectedTask.progress >= 100} className="mr-2" readOnly />
-                        <span className={selectedTask.progress >= 100 ? 'text-gray-600' : 'text-gray-400'}>Final review and submission</span>
-                      </label>
-                    </div>
-                  </div>
-                  
-                  {/* Comments */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Comments</h4>
-                    <div className="space-y-3">
-                      {selectedTask.comments?.map((comment: any, index: number) => (
-                        <div key={index} className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium text-gray-900">{comment.author}</span>
-                            <span className="text-xs text-gray-500">{comment.date}</span>
-                          </div>
-                          <p className="text-gray-600">{comment.text}</p>
-                        </div>
-                      ))}
-                      
-                      {/* Add Comment */}
-                      <div className="flex space-x-2">
-                        <input 
-                          type="text" 
-                          placeholder="Add a comment..." 
-                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                        />
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-                          Add
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Attachments */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-3">Attachments</h4>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      <span className="text-gray-500">📎 No attachments yet</span>
-                      <input type="file" multiple className="hidden" />
-                      <button className="block mt-2 text-blue-600 hover:text-blue-700 text-sm">
-                        Upload files
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button 
-                    onClick={() => setSelectedTask(null)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Close
-                  </button>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Update Progress
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Add Task Modal */}
-          {showAddTaskModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAddTaskModal(false)}>
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-semibold text-gray-900">Add New Task</h3>
-                  <button 
-                    onClick={() => setShowAddTaskModal(false)}
-                    className="text-gray-400 hover:text-gray-600 text-xl"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <form onSubmit={e => { e.preventDefault(); handleAddTask(); }} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
-                    <input
-                      type="text"
-                      value={newTask.title}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      placeholder="Enter task title"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea
-                      value={newTask.description}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                      placeholder="Enter task description"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                      <input
-                        type="date"
-                        value={newTask.dueDate}
-                        onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                      <select
-                        value={newTask.priority}
-                        onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end space-x-3 pt-4">
-                    <button 
-                      type="button"
-                      onClick={() => setShowAddTaskModal(false)}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Add Task
-                    </button>
-                  </div>
-                </form>
               </div>
             </div>
           )}
@@ -666,278 +592,341 @@ export default function TasksPage() {
     );
   }
 
-  // Manager View
+  // HR View - Project-based Task Management
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Task Management</h1>
-            <p className="text-gray-600">Assign and manage team tasks</p>
-          </div>
-          
-          <div className="flex space-x-3">
-            {/* Demo Role Switch */}
-            <button
-              onClick={() => setUserRole('employee')}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
-            >
-              Switch to Employee View
-            </button>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Task Management</h1>
+              <p className="text-gray-600 mt-1">Assign, track, and manage team tasks across projects</p>
+            </div>
             
-            {/* Assign Task Button */}
-            <button
-              onClick={() => setShowAssignModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-            >
-              <span>➕</span>
-              <span>Assign Task</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Team Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <div className="p-2 rounded-full bg-blue-50">
-                <span className="text-blue-600 text-xl">👥</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-600">Team Members</p>
-                <p className="text-2xl font-bold text-gray-900">15</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <div className="p-2 rounded-full bg-green-50">
-                <span className="text-green-600 text-xl">📋</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-600">Active Tasks</p>
-                <p className="text-2xl font-bold text-gray-900">45</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <div className="p-2 rounded-full bg-yellow-50">
-                <span className="text-yellow-600 text-xl">⏳</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-600">Due This Week</p>
-                <p className="text-2xl font-bold text-gray-900">12</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <div className="p-2 rounded-full bg-red-50">
-                <span className="text-red-600 text-xl">⚠️</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-gray-900">3</p>
-              </div>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              <button
+                onClick={() => setUserRole('employee')}
+                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+              >
+                👤 Switch to Employee View
+              </button>
+              
+              <button
+                onClick={() => setShowAddTaskModal(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              >
+                <span>➕</span>
+                <span>Assign Task</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Recent Tasks Table */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Task Assignments</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {tasks.map((task: Task) => (
-                  <tr key={task.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{task.title}</div>
-                      <div className="text-sm text-gray-500">{task.description.substring(0, 50)}...</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">John Doe</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(task.dueDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${
-                        task.priority === 'high' ? 'bg-red-100 text-red-700 border-red-200' :
-                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                        'bg-green-100 text-green-700 border-green-200'
-                      }`}>
-                        {task.priority.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        task.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        task.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                        task.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {task.status.replace('-', ' ').toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${task.progress}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-600">{task.progress}%</span>
-                      </div>
-                    </td>
-                  </tr>
+        {/* Analytics Dashboard */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <TaskSummaryCard 
+            title="Total Tasks" 
+            value={analytics.totalTasks} 
+            icon="📋" 
+            color="bg-blue-50" 
+            subtitle="All projects"
+          />
+          <TaskSummaryCard 
+            title="Active Tasks" 
+            value={analytics.activeTasks} 
+            icon="🔄" 
+            color="bg-amber-50" 
+            subtitle="In progress + pending"
+          />
+          <TaskSummaryCard 
+            title="Completed" 
+            value={analytics.completedTasks} 
+            icon="✅" 
+            color="bg-green-50" 
+            subtitle="This month"
+          />
+          <TaskSummaryCard 
+            title="Overdue" 
+            value={analytics.overdueTasks} 
+            icon="⚠️" 
+            color="bg-red-50" 
+            subtitle="Need attention"
+          />
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              {/* Project Filter */}
+              <select 
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Projects ▾</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.name}>{project.name}</option>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </select>
 
-        {/* Assign Task Modal */}
-        {showAssignModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAssignModal(false)}>
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Assign New Task</h3>
-                <button 
-                  onClick={() => setShowAssignModal(false)}
-                  className="text-gray-400 hover:text-gray-600 text-xl"
+              {/* Status Filter */}
+              <select 
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Status ▾</option>
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+              </select>
+
+              {/* Time Filter */}
+              <select 
+                value={filterTime}
+                onChange={(e) => setFilterTime(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Time ▾</option>
+                <option value="this-week">This Week</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              {/* View Mode Toggle */}
+              <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setViewMode('kanban')}
+                  className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    viewMode === 'kanban' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
                 >
-                  ✕
+                  📋 Kanban
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-3 py-2 text-sm font-medium transition-colors ${
+                    viewMode === 'list' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  📝 List
                 </button>
               </div>
-              
-              <form onSubmit={e => { e.preventDefault(); handleAssignTask(); }} className="space-y-6">
-                {/* Task Title */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
-                  <input
-                    type="text"
-                    value={newTask.title}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Enter task title"
-                    required
-                  />
-                </div>
-                
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={newTask.description}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                    placeholder="Enter task description"
-                    required
-                  />
-                </div>
-                
-                {/* Assignee */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Assignee(s)</label>
-                  <select
-                    value={newTask.assignee}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, assignee: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    required
-                  >
-                    <option value="">Select employee</option>
-                    <option value="john-doe">John Doe</option>
-                    <option value="jane-smith">Jane Smith</option>
-                    <option value="mike-johnson">Mike Johnson</option>
-                    <option value="sarah-wilson">Sarah Wilson</option>
-                  </select>
-                </div>
-                
-                {/* Due Date and Priority */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                    <input
-                      type="date"
-                      value={newTask.dueDate}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      required
-                    />
-                  </div>
+
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search tasks, assignees..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-3 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
+                />
+                <span className="absolute right-3 top-2.5 text-gray-400">🔍</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        {viewMode === 'kanban' ? (
+          <>
+            {/* Project Tabs */}
+            {selectedProject === 'all' ? (
+              <div className="space-y-8">
+                {projects.map(project => {
+                  const projectTasks = tasksByProject[project.name] || [];
+                  if (projectTasks.length === 0) return null;
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    <select
-                      value={newTask.priority}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </div>
-                </div>
-                
-                {/* Attachments */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer block text-center">
-                      <span className="text-gray-500">📎 Click to upload files or drag and drop</span>
-                    </label>
-                    {newTask.attachments.length > 0 && (
-                      <div className="mt-2 text-sm text-gray-600">
-                        {newTask.attachments.length} file(s) selected
+                  return (
+                    <div key={project.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-4 h-4 rounded-full ${project.color.replace('bg-', 'bg-')}`} />
+                          <h2 className="text-xl font-semibold text-gray-900">{project.name}</h2>
+                          <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-sm font-medium">
+                            {projectTasks.length} tasks
+                          </span>
+                        </div>
+                        <p className="text-gray-600">{project.description}</p>
                       </div>
-                    )}
-                  </div>
+                      
+                      {/* Kanban Board for Project */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <KanbanColumn 
+                          title="Pending" 
+                          status="pending" 
+                          tasks={projectTasks.filter(t => t.status === 'pending')}
+                          viewMode="hr"
+                          onTaskClick={handleTaskClick}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragStart={handleDragStart}
+                        />
+                        <KanbanColumn 
+                          title="In Progress" 
+                          status="in-progress" 
+                          tasks={projectTasks.filter(t => t.status === 'in-progress')}
+                          viewMode="hr"
+                          onTaskClick={handleTaskClick}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragStart={handleDragStart}
+                        />
+                        <KanbanColumn 
+                          title="Completed" 
+                          status="completed" 
+                          tasks={projectTasks.filter(t => t.status === 'completed')}
+                          viewMode="hr"
+                          onTaskClick={handleTaskClick}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragStart={handleDragStart}
+                        />
+                        <KanbanColumn 
+                          title="Failed" 
+                          status="failed" 
+                          tasks={projectTasks.filter(t => t.status === 'failed')}
+                          viewMode="hr"
+                          onTaskClick={handleTaskClick}
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragStart={handleDragStart}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className={`w-4 h-4 rounded-full ${
+                    projects.find(p => p.name === selectedProject)?.color || 'bg-gray-400'
+                  }`} />
+                  <h2 className="text-xl font-semibold text-gray-900">{selectedProject}</h2>
+                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-sm font-medium">
+                    {filteredTasks.length} tasks
+                  </span>
                 </div>
                 
-                <div className="flex justify-end space-x-3">
-                  <button 
-                    type="button"
-                    onClick={() => setShowAssignModal(false)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Assign Task
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <KanbanColumn 
+                    title="Pending" 
+                    status="pending" 
+                    tasks={tasksByStatus.pending}
+                    viewMode="hr"
+                    onTaskClick={handleTaskClick}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragStart={handleDragStart}
+                  />
+                  <KanbanColumn 
+                    title="In Progress" 
+                    status="in-progress" 
+                    tasks={tasksByStatus['in-progress']}
+                    viewMode="hr"
+                    onTaskClick={handleTaskClick}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragStart={handleDragStart}
+                  />
+                  <KanbanColumn 
+                    title="Completed" 
+                    status="completed" 
+                    tasks={tasksByStatus.completed}
+                    viewMode="hr"
+                    onTaskClick={handleTaskClick}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragStart={handleDragStart}
+                  />
+                  <KanbanColumn 
+                    title="Failed" 
+                    status="failed" 
+                    tasks={tasksByStatus.failed}
+                    viewMode="hr"
+                    onTaskClick={handleTaskClick}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragStart={handleDragStart}
+                  />
                 </div>
-              </form>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Task List View</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredTasks.map((task) => (
+                    <tr key={task.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleTaskClick(task)}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{task.title}</div>
+                        <div className="text-sm text-gray-500 truncate max-w-xs">{task.description}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                          {task.project}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Avatar name={task.assignee.name} size="xs" />
+                          <span className="ml-2 text-sm text-gray-900">{task.assignee.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(task.dueDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <PriorityChip priority={task.priority} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusChip status={task.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <ProgressBar progress={task.progress} size="sm" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
+
+        {/* Task Detail Modal */}
+        <TaskDetailModal 
+          task={selectedTask}
+          isOpen={showTaskModal}
+          onClose={() => setShowTaskModal(false)}
+          onUpdateTask={handleUpdateTask}
+          userRole={userRole}
+        />
       </div>
     </Layout>
   );

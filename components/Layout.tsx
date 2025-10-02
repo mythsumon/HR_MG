@@ -31,12 +31,7 @@ const navigation: NavigationItem[] = [
   { name: 'Notice Board', href: '/notice-board', icon: '📢', role: 'all', group: 'hr', badge: 'NEW' },
   { name: 'FAQ', href: '/faq', icon: '❓', role: 'all', group: 'hr' },
   { name: 'Q&A / Helpdesk', href: '/helpdesk', icon: '💬', role: 'all', group: 'hr' },
-  { name: 'Settings', href: '/settings', icon: '⚙️', role: 'all', group: 'hr' },
-  
-  // HR Manager specific items
-  { name: 'Approvals', href: '/approvals', icon: '✅', role: 'manager', group: 'hr' },
-  { name: 'Team Attendance', href: '/team-attendance', icon: '👥', role: 'manager', group: 'hr' },
-  { name: 'Task Assignments', href: '/task-assignments', icon: '📋', role: 'manager', group: 'hr' },
+  { name: 'Settings', href: '/settings', icon: '⚙️', role: 'all', group: 'hr' }
 ];
 
 export default function Layout({ children }: LayoutProps) {
@@ -56,7 +51,6 @@ export default function Layout({ children }: LayoutProps) {
     const storedRole = localStorage.getItem('userRole') as 'employee' | 'manager';
     const storedName = localStorage.getItem('userName');
     const storedAvatar = localStorage.getItem('userAvatar');
-    const storedView = localStorage.getItem('currentView') as 'employee' | 'hr';
     const storedDarkMode = localStorage.getItem('darkMode') === 'true';
     const storedLanguage = localStorage.getItem('language') || 'en';
     
@@ -66,11 +60,12 @@ export default function Layout({ children }: LayoutProps) {
     setDarkMode(storedDarkMode);
     setLanguage(storedLanguage);
     
-    // If HR manager, default to employee view, otherwise keep employee view
+    // HR managers always use HR view
     if (storedRole === 'manager') {
-      setCurrentView(storedView || 'employee'); // Default to employee view for HR
+      setCurrentView('hr');
+      localStorage.setItem('currentView', 'hr');
     } else {
-      setCurrentView('employee'); // Regular employees only have employee view
+      setCurrentView('employee');
     }
   }, []);
 
@@ -101,25 +96,15 @@ export default function Layout({ children }: LayoutProps) {
     localStorage.setItem('userName', 'Sarah Johnson');
     localStorage.setItem('userAvatar', 'SJ');
     localStorage.setItem('userEmail', 'manager@company.com');
+    
+    // HR managers always use HR view
+    setCurrentView('hr');
+    localStorage.setItem('currentView', 'hr');
   };
   
-  // Function to toggle between employee and HR view (only for managers)
-  const toggleView = () => {
-    if (userRole !== 'manager') return; // Only managers can switch views
-    
-    const newView = currentView === 'employee' ? 'hr' : 'employee';
-    setCurrentView(newView);
-    localStorage.setItem('currentView', newView);
-    
-    // Dispatch custom event for real-time updates
-    window.dispatchEvent(new CustomEvent('viewChanged', {
-      detail: { view: newView }
-    }));
-  };
-  
-  // Filter navigation based on current view
+  // Filter navigation based on user role (HR always shows full navigation)
   const getFilteredNavigation = () => {
-    if (currentView === 'employee' || userRole === 'employee') {
+    if (userRole === 'employee') {
       // Employee view: show only employee-relevant items
       return navigation.filter(item => 
         item.role === 'all' || item.role === 'employee'
@@ -237,33 +222,6 @@ export default function Layout({ children }: LayoutProps) {
                 </button>
               </div>
             </div>
-            
-            {/* View Toggle Button for HR Managers */}
-            {userRole === 'manager' && (
-              <button
-                onClick={toggleView}
-                className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
-                  currentView === 'hr' 
-                    ? 'bg-purple-50 text-purple-700 border border-purple-200' 
-                    : 'bg-blue-50 text-blue-700 border border-blue-200'
-                }`}
-              >
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">
-                    {currentView === 'hr' ? '👨‍💼' : '👤'}
-                  </span>
-                  <span className="font-medium">
-                    {currentView === 'hr' ? 'HR View' : 'Employee View'}
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xs text-gray-500 mr-1">Switch</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                </div>
-              </button>
-            )}
           </div>
 
           {/* Navigation */}
