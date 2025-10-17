@@ -65,6 +65,14 @@ export default function NoticeBoardPage() {
 
   const [filterCategory, setFilterCategory] = useState('all');
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newNotice, setNewNotice] = useState({
+    title: '',
+    content: '',
+    category: 'company' as 'company' | 'hr' | 'policy' | 'update',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    isPinned: false
+  });
 
   const getCategoryColor = (category: Notice['category']) => {
     switch (category) {
@@ -91,6 +99,32 @@ export default function NoticeBoardPage() {
     ));
   };
 
+  const handleCreateNotice = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const notice: Notice = {
+      id: notices.length + 1,
+      title: newNotice.title,
+      content: newNotice.content,
+      category: newNotice.category,
+      priority: newNotice.priority,
+      author: 'Current User', // In a real app, this would come from auth context
+      date: new Date().toISOString().split('T')[0],
+      isRead: false,
+      isPinned: newNotice.isPinned
+    };
+    
+    setNotices(prev => [notice, ...prev]);
+    setShowCreateModal(false);
+    setNewNotice({
+      title: '',
+      content: '',
+      category: 'company',
+      priority: 'medium',
+      isPinned: false
+    });
+  };
+
   const filteredNotices = notices.filter(notice => 
     filterCategory === 'all' || notice.category === filterCategory
   );
@@ -102,9 +136,18 @@ export default function NoticeBoardPage() {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notice Board</h1>
-          <p className="text-gray-600">Company announcements, HR updates, and policy changes</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Notice Board</h1>
+            <p className="text-gray-600">Company announcements, HR updates, and policy changes</p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
+          >
+            <span>+</span>
+            <span>Create Notice</span>
+          </button>
         </div>
 
         {/* Filters */}
@@ -275,6 +318,107 @@ export default function NoticeBoardPage() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Notice Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateModal(false)}>
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Create New Notice</h3>
+                <button 
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <form onSubmit={handleCreateNotice} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={newNotice.title}
+                    onChange={(e) => setNewNotice(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Enter notice title"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                  <textarea
+                    value={newNotice.content}
+                    onChange={(e) => setNewNotice(prev => ({ ...prev, content: e.target.value }))}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Enter notice content"
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select
+                      value={newNotice.category}
+                      onChange={(e) => setNewNotice(prev => ({ ...prev, category: e.target.value as any }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="company">Company</option>
+                      <option value="hr">HR</option>
+                      <option value="policy">Policy</option>
+                      <option value="update">Update</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <select
+                      value={newNotice.priority}
+                      onChange={(e) => setNewNotice(prev => ({ ...prev, priority: e.target.value as any }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="pinNotice"
+                      checked={newNotice.isPinned}
+                      onChange={(e) => setNewNotice(prev => ({ ...prev, isPinned: e.target.checked }))}
+                      className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <label htmlFor="pinNotice" className="ml-2 block text-sm text-gray-700">
+                      Pin to top
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Create Notice
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

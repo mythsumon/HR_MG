@@ -24,9 +24,17 @@ export default function PayrollPage() {
   return (
     <Layout>
         <div className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payroll Management</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage employee payroll and salary disbursement</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payroll Management</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage employee payroll and salary disbursement</p>
+            </div>
+            <a 
+              href="/payroll/create" 
+              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              + Create Payroll
+            </a>
           </div>
 
           {/* Stats */}

@@ -8,7 +8,7 @@ interface LeaveRequest {
   employeeName: string;
   department: string;
   team: string;
-  leaveType: 'vacation' | 'sick' | 'personal' | 'unpaid';
+  leaveType: 'annual' | 'sick' | 'unpaid' | 'vacation';
   startDate: string;
   endDate: string;
   duration: number;
@@ -49,6 +49,7 @@ export default function HRLeaveManagement() {
     endDate: '',
     reason: ''
   });
+  const [densityMode, setDensityMode] = useState<'comfortable' | 'compact'>('comfortable');
 
   // Mock data
   const mockEmployees: Employee[] = [
@@ -56,14 +57,16 @@ export default function HRLeaveManagement() {
     { id: 'E214', name: 'Sara Lee', department: 'Marketing', team: 'Digital' },
     { id: 'E331', name: 'David Park', department: 'Engineering', team: 'Backend' },
     { id: 'E445', name: 'Lisa Chen', department: 'Design', team: 'UX/UI' },
-    { id: 'E556', name: 'Mike Johnson', department: 'Sales', team: 'Enterprise' }
+    { id: 'E556', name: 'Mike Johnson', department: 'Sales', team: 'Enterprise' },
+    { id: 'E667', name: 'Emma Wilson', department: 'Engineering', team: 'Frontend' },
+    { id: 'E778', name: 'Robert Brown', department: 'Engineering', team: 'Backend' }
   ];
 
   const mockLeaveRequests: LeaveRequest[] = [
     {
       id: 'L001', employeeId: 'E123', employeeName: 'John Kim', department: 'Engineering', team: 'Frontend',
-      leaveType: 'vacation', startDate: '2025-09-15', endDate: '2025-09-18', duration: 4, halfDay: 'am',
-      status: 'approved', reason: 'Family vacation', requestedOn: '2025-09-01'
+      leaveType: 'annual', startDate: '2025-09-15', endDate: '2025-09-18', duration: 4, halfDay: 'am',
+      status: 'approved', reason: 'Annual leave', requestedOn: '2025-09-01'
     },
     {
       id: 'L002', employeeId: 'E214', employeeName: 'Sara Lee', department: 'Marketing', team: 'Digital',
@@ -72,8 +75,38 @@ export default function HRLeaveManagement() {
     },
     {
       id: 'L003', employeeId: 'E214', employeeName: 'Sara Lee', department: 'Marketing', team: 'Digital',
-      leaveType: 'personal', startDate: '2025-09-19', endDate: '2025-09-19', duration: 1,
-      status: 'pending', reason: 'Personal matter', requestedOn: '2025-09-12'
+      leaveType: 'vacation', startDate: '2025-09-19', endDate: '2025-09-19', duration: 1,
+      status: 'pending', reason: 'Vacation', requestedOn: '2025-09-12'
+    },
+    {
+      id: 'L004', employeeId: 'E331', employeeName: 'David Park', department: 'Engineering', team: 'Backend',
+      leaveType: 'unpaid', startDate: '2025-09-22', endDate: '2025-09-23', duration: 2,
+      status: 'approved', reason: 'Personal matter', requestedOn: '2025-09-20'
+    },
+    {
+      id: 'L005', employeeId: 'E445', employeeName: 'Lisa Chen', department: 'Design', team: 'UX/UI',
+      leaveType: 'vacation', startDate: '2025-09-10', endDate: '2025-09-12', duration: 3,
+      status: 'rejected', reason: 'Team meeting conflict', requestedOn: '2025-09-05'
+    },
+    {
+      id: 'L006', employeeId: 'E556', employeeName: 'Mike Johnson', department: 'Sales', team: 'Enterprise',
+      leaveType: 'annual', startDate: '2025-09-25', endDate: '2025-09-27', duration: 3,
+      status: 'pending', reason: 'Family event', requestedOn: '2025-09-22'
+    },
+    {
+      id: 'L007', employeeId: 'E123', employeeName: 'John Kim', department: 'Engineering', team: 'Frontend',
+      leaveType: 'sick', startDate: '2025-10-17', endDate: '2025-10-18', duration: 2,
+      status: 'approved', reason: 'Medical checkup', requestedOn: '2025-10-15'
+    },
+    {
+      id: 'L008', employeeId: 'E667', employeeName: 'Emma Wilson', department: 'Engineering', team: 'Frontend',
+      leaveType: 'annual', startDate: '2025-10-17', endDate: '2025-10-19', duration: 3,
+      status: 'approved', reason: 'Annual leave', requestedOn: '2025-10-10'
+    },
+    {
+      id: 'L009', employeeId: 'E778', employeeName: 'Robert Brown', department: 'Engineering', team: 'Backend',
+      leaveType: 'vacation', startDate: '2025-10-17', endDate: '2025-10-17', duration: 1,
+      status: 'pending', reason: 'Personal vacation', requestedOn: '2025-10-14'
     }
   ];
 
@@ -99,21 +132,21 @@ export default function HRLeaveManagement() {
 
   const getLeaveTypeIcon = (type: string) => {
     switch (type) {
-      case 'vacation': return '🌴';
+      case 'annual': return '📅';
       case 'sick': return '🤒';
-      case 'personal': return '👤';
       case 'unpaid': return '⏸️';
+      case 'vacation': return '🌴';
       default: return '📅';
     }
   };
 
   const getLeaveTypeColor = (type: string) => {
     switch (type) {
-      case 'vacation': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'sick': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'personal': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'unpaid': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'annual': return 'bg-blue-500 text-white';
+      case 'sick': return 'bg-yellow-500 text-white';
+      case 'unpaid': return 'bg-gray-500 text-white';
+      case 'vacation': return 'bg-teal-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
@@ -138,6 +171,36 @@ export default function HRLeaveManagement() {
       request.startDate <= date &&
       request.endDate >= date
     );
+  };
+
+  // Helper function to get all days in a month view (including days from previous/next months)
+  const getMonthDays = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    // First day of the month
+    const firstDay = new Date(year, month, 1);
+    // Last day of the month
+    const lastDay = new Date(year, month + 1, 0);
+    // First day of the calendar (Sunday of the week that includes the 1st)
+    const startDay = new Date(firstDay);
+    startDay.setDate(firstDay.getDate() - firstDay.getDay());
+    // Last day of the calendar (Saturday of the week that includes the last day)
+    const endDay = new Date(lastDay);
+    endDay.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+    
+    const days = [];
+    const currentDay = new Date(startDay);
+    
+    while (currentDay <= endDay) {
+      days.push({
+        date: new Date(currentDay),
+        isCurrentMonth: currentDay.getMonth() === month
+      });
+      currentDay.setDate(currentDay.getDate() + 1);
+    }
+    
+    return days;
   };
 
   const filteredEmployees = mockEmployees.filter(employee => {
@@ -193,9 +256,10 @@ export default function HRLeaveManagement() {
   };
 
   const leaveTypes = [
-    { value: 'vacation', label: 'Vacation' },
-    { value: 'sick', label: 'Sick' },
-    { value: 'personal', label: 'Personal' }
+    { value: 'annual', label: 'Annual Leave' },
+    { value: 'sick', label: 'Sick Leave' },
+    { value: 'unpaid', label: 'Unpaid Leave' },
+    { value: 'vacation', label: 'Vacation Leave' }
   ];
 
   const handleApproveRequest = (request: LeaveRequest) => {
@@ -275,10 +339,10 @@ export default function HRLeaveManagement() {
             className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="all">Leave Type ▾</option>
-            <option value="vacation">Vacation</option>
-            <option value="sick">Sick</option>
-            <option value="personal">Personal</option>
-            <option value="unpaid">Unpaid</option>
+            <option value="annual">Annual Leave</option>
+            <option value="sick">Sick Leave</option>
+            <option value="unpaid">Unpaid Leave</option>
+            <option value="vacation">Vacation Leave</option>
           </select>
 
           {/* Status Filter */}
@@ -386,7 +450,18 @@ export default function HRLeaveManagement() {
               </div>
               <div className="text-sm text-blue-700 dark:text-blue-300">
                 {mockLeaveRequests.filter(req => req.status === 'pending').length > 0 && (
-                  <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-2 py-1 rounded-full">
+                  <span 
+                    className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-2 py-1 rounded-full cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors"
+                    onClick={() => {
+                      // Filter pending requests and show the first one in the approval modal
+                      const pendingRequests = mockLeaveRequests.filter(req => req.status === 'pending');
+                      if (pendingRequests.length > 0) {
+                        setSelectedRequest(pendingRequests[0]);
+                        setActionType('approve');
+                        setShowApprovalModal(true);
+                      }
+                    }}
+                  >
                     ⏳ {mockLeaveRequests.filter(req => req.status === 'pending').length} pending approvals
                   </span>
                 )}
@@ -403,7 +478,7 @@ export default function HRLeaveManagement() {
                     <th className="sticky left-0 bg-gray-50 dark:bg-gray-700 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-600">
                       Employee
                     </th>
-                    {weekDates.map((date, index) => (
+                    {weekDates.map((date: Date, index: number) => (
                       <th key={index} className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         <div>
                           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]} {date.getDate()}
@@ -431,7 +506,7 @@ export default function HRLeaveManagement() {
                           </div>
                         </div>
                       </td>
-                      {weekDates.map((date, dateIndex) => {
+                      {weekDates.map((date: Date, dateIndex: number) => {
                         const dateStr = formatDate(date);
                         const leaves = getLeaveForEmployeeAndDate(employee.id, dateStr);
                         const isWeekendDay = isWeekend(date);
@@ -485,7 +560,7 @@ export default function HRLeaveManagement() {
               <strong>Legend:</strong>
               <span className="ml-4">🌴 Vacation</span>
               <span className="ml-4">🤒 Sick</span>
-              <span className="ml-4">👤 Personal</span>
+              <span className="ml-4">📅 Annual</span>
               <span className="ml-4">⏸️ Unpaid</span>
               <span className="ml-4">W Weekend/Closed</span>
               <span className="ml-4">AM/PM = Half-day</span>
@@ -500,10 +575,352 @@ export default function HRLeaveManagement() {
 
       {/* Monthly View */}
       {currentView === 'month' && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="text-center text-gray-500 dark:text-gray-400 py-12">
-            <h3 className="text-lg font-medium mb-2">Monthly View Coming Soon</h3>
-            <p>Monthly calendar view with leave pills and day drill-down functionality will be available in the next update.</p>
+        <div className="space-y-6">
+          {/* Month Navigation */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    const newDate = new Date(currentDate);
+                    newDate.setMonth(currentDate.getMonth() - 1);
+                    setCurrentDate(newDate);
+                  }}
+                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => setCurrentDate(new Date())}
+                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => {
+                    const newDate = new Date(currentDate);
+                    newDate.setMonth(currentDate.getMonth() + 1);
+                    setCurrentDate(newDate);
+                  }}
+                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+            {/* Density Toggle */}
+            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setDensityMode('comfortable')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  densityMode === 'comfortable'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Comfortable
+              </button>
+              <button
+                onClick={() => setDensityMode('compact')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                  densityMode === 'compact'
+                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Compact
+              </button>
+            </div>
+          </div>
+
+          {/* Monthly Summary */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Total leave requests this month: {mockLeaveRequests.filter(req => {
+                  const reqDate = new Date(req.startDate);
+                  return reqDate.getMonth() === currentDate.getMonth() && reqDate.getFullYear() === currentDate.getFullYear();
+                }).length}</strong>
+              </div>
+              <div className="text-sm text-blue-700 dark:text-blue-300">
+                {mockLeaveRequests.filter(req => req.status === 'pending').length > 0 && (
+                  <span 
+                    className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-3 py-1.5 rounded-full cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors inline-flex items-center"
+                    onClick={() => {
+                      // Filter pending requests and show the first one in the approval modal
+                      const pendingRequests = mockLeaveRequests.filter(req => req.status === 'pending');
+                      if (pendingRequests.length > 0) {
+                        setSelectedRequest(pendingRequests[0]);
+                        setActionType('approve');
+                        setShowApprovalModal(true);
+                      }
+                    }}
+                  >
+                    <span className="mr-1">⏳</span>
+                    {mockLeaveRequests.filter(req => req.status === 'pending').length} pending approvals
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Calendar */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative p-2">
+            <div className="grid grid-cols-7 gap-2">
+              {/* Day headers */}
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <div key={day} className="bg-gray-100 dark:bg-gray-700 p-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 rounded-lg">
+                  {day}
+                </div>
+              ))}
+              
+              {/* Calendar days */}
+              {getMonthDays(currentDate).map((dayInfo, index) => {
+                const { date, isCurrentMonth } = dayInfo;
+                const dateStr = formatDate(date);
+                const dayLeaves = mockLeaveRequests.filter(request => 
+                  request.startDate <= dateStr && request.endDate >= dateStr
+                );
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const isToday = date.toDateString() === new Date().toDateString();
+                const capacityCount = dayLeaves.length;
+                
+                // Group leaves by employee for conflict detection
+                const employeeCount: {[key: string]: number} = {};
+                dayLeaves.forEach(leave => {
+                  employeeCount[leave.employeeId] = (employeeCount[leave.employeeId] || 0) + 1;
+                });
+                // Check if any employee has multiple leaves on the same day (which shouldn't happen in real scenario)
+                // Or if there are more than 5 leaves on the same day (indicating high capacity)
+                const hasConflicts = Object.values(employeeCount).some(count => count > 1) || dayLeaves.length > 5;
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`min-h-32 bg-white dark:bg-gray-800 p-2 relative group ${
+                      isCurrentMonth ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750' : 'bg-gray-50 dark:bg-gray-900/50 text-gray-400' 
+                    } ${isWeekend ? 'bg-gray-50 dark:bg-gray-900/30' : ''} border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm`}
+                    onClick={() => {
+                      if (isCurrentMonth) {
+                        // Navigate to week view of this day
+                        setCurrentDate(date);
+                        setCurrentView('week');
+                      }
+                    }}
+                  >
+                    {/* Top indicators */}
+                    <div className="flex justify-between items-start mb-1">
+                      {/* Capacity dots or count */}
+                      <div className="flex items-center">
+                        {capacityCount > 0 && (
+                          capacityCount > 3 ? (
+                            <span className="text-xs font-medium bg-gray-200 dark:bg-gray-700 rounded-full px-1.5 py-0.5">
+                              {capacityCount}
+                            </span>
+                          ) : (
+                            <div className="flex space-x-1">
+                              {Array.from({ length: capacityCount }).map((_, i) => (
+                                <span key={i} className="text-xs w-2 h-2 rounded-full bg-blue-500"></span>
+                              ))}
+                            </div>
+                          )
+                        )}
+                        {hasConflicts && (
+                          <span className="text-xs text-red-500 ml-1" title="High capacity day">⚠</span>
+                        )}
+                      </div>
+                      
+                      {/* Date number */}
+                      <div className={`text-sm font-medium ${
+                        isToday 
+                          ? 'w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white shadow' 
+                          : isCurrentMonth 
+                            ? 'text-gray-900 dark:text-white' 
+                            : 'text-gray-400'
+                      }`}>
+                        {date.getDate()}
+                      </div>
+                    </div>
+                    
+                    {/* Leave chips */}
+                    <div className="space-y-1 mt-1">
+                      {dayLeaves.slice(0, 3).map((leave, idx) => {
+                        // Get employee initials
+                        const initials = leave.employeeName
+                          .split(' ')
+                          .map(n => n[0])
+                          .join('')
+                          .toUpperCase();
+                        
+                        // Check if this is a multi-day leave
+                        const isMultiDay = leave.startDate !== leave.endDate;
+                        const isStartDate = leave.startDate === dateStr;
+                        const isEndDate = leave.endDate === dateStr;
+                        const isMiddleDate = !isStartDate && !isEndDate && 
+                          new Date(leave.startDate) < date && new Date(leave.endDate) > date;
+                        
+                        // Get leave type color
+                        const getLeaveTypeStyle = (type: string, status: string) => {
+                          let baseColor = '';
+                          let textColor = 'text-white';
+                          switch (type) {
+                            case 'annual': baseColor = 'bg-blue-500'; break;
+                            case 'vacation': baseColor = 'bg-teal-500'; break;
+                            case 'sick': baseColor = 'bg-yellow-500'; textColor = 'text-gray-800'; break;
+                            case 'unpaid': baseColor = 'bg-gray-500'; break;
+                            default: baseColor = 'bg-gray-500';
+                          }
+                          
+                          // Apply status styling
+                          if (status === 'pending') {
+                            return `${baseColor} opacity-80 ${textColor}`;
+                          } else if (status === 'rejected') {
+                            return `border border-red-500 ${baseColor} ${textColor}`;
+                          }
+                          return `${baseColor} ${textColor}`;
+                        };
+                        
+                        const leaveTypeStyle = getLeaveTypeStyle(leave.leaveType, leave.status);
+                        const textColor = leaveTypeStyle.includes('text-gray-800') ? 'text-gray-800' : 'text-white';
+                        
+                        return (
+                          <div key={idx} className="group relative">
+                            {isMultiDay ? (
+                              // Multi-day span visualization
+                              <div className="flex items-center w-full">
+                                {isStartDate && (
+                                  <div className="flex items-center w-full">
+                                    <div className={`w-5 h-5 rounded-l-full flex items-center justify-center text-xs font-bold ${leaveTypeStyle}`}>
+                                      {initials}
+                                    </div>
+                                    <div className={`h-1.5 flex-grow ${leaveTypeStyle.split(' ')[0]}`}></div>
+                                  </div>
+                                )}
+                                {isMiddleDate && (
+                                  <div className={`h-1.5 w-full ${leaveTypeStyle.split(' ')[0]}`}></div>
+                                )}
+                                {isEndDate && (
+                                  <div className="flex items-center w-full">
+                                    <div className={`h-1.5 flex-grow ${leaveTypeStyle.split(' ')[0]}`}></div>
+                                    <div className={`w-3 h-3 rounded-r-full ${leaveTypeStyle.split(' ')[0]}`}></div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              // Single day chip
+                              <div 
+                                className={`flex items-center text-xs h-5 rounded-full px-2 truncate cursor-pointer ${leaveTypeStyle} ${densityMode === 'compact' ? 'max-w-[70px]' : 'max-w-[110px]'} shadow-sm`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRequest(leave);
+                                  setShowApprovalModal(true);
+                                }}
+                              >
+                                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] font-bold mr-1 text-gray-800">
+                                  {initials}
+                                </div>
+                                {densityMode === 'comfortable' && (
+                                  <span className="truncate mr-1">
+                                    {leave.employeeName.split(' ')[0]}
+                                  </span>
+                                )}
+                                <span className={`text-[10px] ml-1 ${
+                                  leave.leaveType === 'annual' ? 'bg-blue-700' :
+                                  leave.leaveType === 'vacation' ? 'bg-teal-700' :
+                                  leave.leaveType === 'sick' ? 'bg-yellow-700' :
+                                  'bg-gray-700'
+                                } px-1 rounded`}>
+                                  {leave.leaveType.charAt(0).toUpperCase()}
+                                </span>
+                                {leave.status === 'pending' && (
+                                  <span className="ml-1">⏳</span>
+                                )}
+                                {leave.status === 'rejected' && (
+                                  <span className="ml-1">❌</span>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
+                              <div className="font-medium">{leave.employeeName}</div>
+                              <div>{leave.leaveType} · {leave.status}</div>
+                              <div>{leave.startDate}–{leave.endDate}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Overflow indicator */}
+                      {dayLeaves.length > 3 && (
+                        <div 
+                          className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // In a real implementation, this would open a day detail view
+                            console.log(`Show details for ${dateStr}`);
+                          }}
+                        >
+                          +{dayLeaves.length - 3} more
+                        </div>
+                      )}
+                      
+                      {/* Empty state hint */}
+                      {dayLeaves.length === 0 && isCurrentMonth && (
+                        <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity h-6 flex items-center justify-center">
+                          View week
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Floating Legend */}
+            <div className="absolute bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 text-xs border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-wrap gap-2">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-sm bg-blue-500 mr-1"></div>
+                  <span>Annual</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-sm bg-teal-500 mr-1"></div>
+                  <span>Vacation</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-sm bg-yellow-500 mr-1"></div>
+                  <span>Sick</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-sm bg-gray-500 mr-1"></div>
+                  <span>Unpaid</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-sm bg-gray-500 opacity-50 mr-1"></div>
+                  <span>Pending</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <strong>Legend:</strong>
+              <span className="ml-4">🌴 Vacation</span>
+              <span className="ml-4">🤒 Sick</span>
+              <span className="ml-4">📅 Annual</span>
+              <span className="ml-4">⏸️ Unpaid</span>
+              <span className="ml-4">W Weekend/Closed</span>
+              <span className="ml-4">⏳ Pending</span>
+              <span className="ml-4">✅ Approved</span>
+              <span className="ml-4">❌ Rejected</span>
+              <span className="ml-2 text-blue-600 dark:text-blue-400">• Click on leave to view details</span>
+            </div>
           </div>
         </div>
       )}

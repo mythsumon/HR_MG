@@ -1098,27 +1098,36 @@ const EmployeeDashboard = () => {
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Annual Leave</div>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-blue-600 dark:text-blue-400">12 remaining</span>
+                      <span className="font-medium text-blue-600 dark:text-blue-400">7 remaining</span>
                       <span className="text-gray-400">|</span>
-                      <span className="text-sm text-red-500 dark:text-red-400">8 used</span>
+                      <span className="text-sm text-red-500 dark:text-red-400">0 used</span>
                     </div>
                   </div>
                   
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Sick Leave</div>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-green-600 dark:text-green-400">5 remaining</span>
+                      <span className="font-medium text-green-600 dark:text-green-400">7 remaining</span>
                       <span className="text-gray-400">|</span>
-                      <span className="text-sm text-orange-500 dark:text-orange-400">5 used</span>
+                      <span className="text-sm text-orange-500 dark:text-orange-400">0 used</span>
                     </div>
                   </div>
                   
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Personal Leave</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Unpaid Leave</div>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-purple-600 dark:text-purple-400">3 remaining</span>
+                      <span className="font-medium text-gray-600 dark:text-gray-400">Unlimited</span>
                       <span className="text-gray-400">|</span>
-                      <span className="text-sm text-red-500 dark:text-red-400">2 used</span>
+                      <span className="text-sm text-red-500 dark:text-red-400">0 used</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Vacation Leave</div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-purple-600 dark:text-purple-400">3-4 remaining</span>
+                      <span className="text-gray-400">|</span>
+                      <span className="text-sm text-red-500 dark:text-red-400">0 used</span>
                     </div>
                   </div>
                 </div>
@@ -1127,7 +1136,7 @@ const EmployeeDashboard = () => {
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-600 mb-6">
                   <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg text-center">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Remaining</div>
-                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">20 days</div>
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">17-18 days</div>
                   </div>
                 </div>
                 

@@ -16,6 +16,13 @@ export default function FAQPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newFAQ, setNewFAQ] = useState({
+    question: '',
+    answer: '',
+    category: 'general' as 'hr' | 'payroll' | 'it' | 'general',
+    tags: ''
+  });
 
   const faqData: FAQItem[] = [
     {
@@ -118,13 +125,38 @@ export default function FAQPage() {
     }
   };
 
+  const handleCreateFAQ = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real application, this would send the FAQ to a backend
+    console.log('New FAQ submitted:', newFAQ);
+    // Reset form and close modal
+    setNewFAQ({
+      question: '',
+      answer: '',
+      category: 'general',
+      tags: ''
+    });
+    setShowCreateModal(false);
+    // Show success message
+    alert('FAQ has been submitted for review!');
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h1>
-          <p className="text-gray-600">Find answers to common HR, Payroll, IT, and general questions</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h1>
+            <p className="text-gray-600">Find answers to common HR, Payroll, IT, and general questions</p>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
+          >
+            <span>+</span>
+            <span>Create FAQ</span>
+          </button>
         </div>
 
         {/* Search Bar */}
@@ -256,6 +288,92 @@ export default function FAQPage() {
             Ask a Question
           </button>
         </div>
+
+        {/* Create FAQ Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateModal(false)}>
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Create New FAQ</h3>
+                <button 
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <form onSubmit={handleCreateFAQ} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                  <input
+                    type="text"
+                    value={newFAQ.question}
+                    onChange={(e) => setNewFAQ(prev => ({ ...prev, question: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Enter the frequently asked question"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
+                  <textarea
+                    value={newFAQ.answer}
+                    onChange={(e) => setNewFAQ(prev => ({ ...prev, answer: e.target.value }))}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="Enter the detailed answer"
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select
+                      value={newFAQ.category}
+                      onChange={(e) => setNewFAQ(prev => ({ ...prev, category: e.target.value as any }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="general">🏢 General</option>
+                      <option value="hr">👥 HR</option>
+                      <option value="payroll">💰 Payroll</option>
+                      <option value="it">💻 IT</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags (optional)</label>
+                    <input
+                      type="text"
+                      value={newFAQ.tags}
+                      onChange={(e) => setNewFAQ(prev => ({ ...prev, tags: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="Separate tags with commas (e.g., leave, vacation, medical)"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Create FAQ
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

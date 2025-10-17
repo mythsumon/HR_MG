@@ -15,9 +15,10 @@ export default function LeavePage() {
   const [userRole, setUserRole] = useState('employee');
 
   const leaveTypes = [
-    { value: 'vacation', label: 'Vacation' },
-    { value: 'sick', label: 'Sick' },
-    { value: 'personal', label: 'Personal' }
+    { value: 'annual', label: 'Annual Leave' },
+    { value: 'sick', label: 'Sick Leave' },
+    { value: 'unpaid', label: 'Unpaid Leave' },
+    { value: 'vacation', label: 'Vacation Leave' }
   ];
 
   useEffect(() => {
@@ -65,25 +66,25 @@ export default function LeavePage() {
         </div>
 
         {/* Leave Balances */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Vacation</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Annual Leave</h3>
               <div className="w-4 h-4 rounded-full bg-blue-500"></div>
             </div>
             
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Allocated</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">20 days</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">7 days</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Used</span>
-                <span className="text-sm font-medium text-red-600">8 days</span>
+                <span className="text-sm font-medium text-red-600">0 days</span>
               </div>
               <div className="flex justify-between border-t pt-2 dark:border-gray-700">
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Remaining</span>
-                <span className="text-sm font-bold text-green-600">12 days</span>
+                <span className="text-sm font-bold text-green-600">7 days</span>
               </div>
             </div>
           </div>
@@ -97,37 +98,59 @@ export default function LeavePage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Allocated</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">10 days</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">7 days</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Used</span>
-                <span className="text-sm font-medium text-red-600">2 days</span>
+                <span className="text-sm font-medium text-red-600">0 days</span>
               </div>
               <div className="flex justify-between border-t pt-2 dark:border-gray-700">
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Remaining</span>
-                <span className="text-sm font-bold text-green-600">8 days</span>
+                <span className="text-sm font-bold text-green-600">7 days</span>
               </div>
             </div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Personal</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Unpaid Leave</h3>
+              <div className="w-4 h-4 rounded-full bg-gray-500"></div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Total Allocated</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Unlimited</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Used</span>
+                <span className="text-sm font-medium text-red-600">0 days</span>
+              </div>
+              <div className="flex justify-between border-t pt-2 dark:border-gray-700">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Remaining</span>
+                <span className="text-sm font-bold text-green-600">Unlimited</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Vacation Leave</h3>
               <div className="w-4 h-4 rounded-full bg-green-500"></div>
             </div>
             
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Allocated</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">5 days</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">3-4 days</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Used</span>
-                <span className="text-sm font-medium text-red-600">1 day</span>
+                <span className="text-sm font-medium text-red-600">0 days</span>
               </div>
               <div className="flex justify-between border-t pt-2 dark:border-gray-700">
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Remaining</span>
-                <span className="text-sm font-bold text-green-600">4 days</span>
+                <span className="text-sm font-bold text-green-600">3-4 days</span>
               </div>
             </div>
           </div>
@@ -143,7 +166,7 @@ export default function LeavePage() {
             <div className="px-6 py-4 flex justify-between items-center">
               <div>
                 <div className="flex items-center space-x-3">
-                  <span className="font-medium text-gray-900 dark:text-white">Vacation Leave</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Annual Leave</span>
                   <span className="text-gray-500 dark:text-gray-400">|</span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">Dec 25 – Dec 29 (5 days)</span>
                 </div>
@@ -169,7 +192,7 @@ export default function LeavePage() {
             <div className="px-6 py-4 flex justify-between items-center">
               <div>
                 <div className="flex items-center space-x-3">
-                  <span className="font-medium text-gray-900 dark:text-white">Personal Leave</span>
+                  <span className="font-medium text-gray-900 dark:text-white">Vacation Leave</span>
                   <span className="text-gray-500 dark:text-gray-400">|</span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">Oct 22 (1 day)</span>
                 </div>

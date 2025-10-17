@@ -101,12 +101,20 @@ export default function HRPayrollManagement() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payroll Management</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage employee payroll and salary disbursement</p>
         </div>
-        <button
-          onClick={() => setShowHRPayslip(true)}
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          My Payslip
-        </button>
+        <div className="flex space-x-3">
+          <a
+            href="/payroll/create"
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            + Create Payroll
+          </a>
+          <button
+            onClick={() => setShowHRPayslip(true)}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            My Payslip
+          </button>
+        </div>
       </div>
 
       {/* Controls */}
