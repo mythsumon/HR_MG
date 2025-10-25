@@ -1,9 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 
 export default function ReportsPage() {
+  const [activeFormula, setActiveFormula] = useState<string | null>(null);
+
+  const toggleFormula = (section: string) => {
+    setActiveFormula(activeFormula === section ? null : section);
+  };
+
   return (
     <Layout>
         <div className="space-y-6">
@@ -38,6 +44,36 @@ export default function ReportsPage() {
                 <li>• Late arrival analytics</li>
                 <li>• Absence patterns</li>
               </ul>
+              
+              {/* Formula UI for Attendance Reports */}
+              <div className="mt-4">
+                <button 
+                  onClick={() => toggleFormula('attendance')}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {activeFormula === 'attendance' ? 'Hide Formulas' : 'Show Formulas'}
+                </button>
+                
+                {activeFormula === 'attendance' && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs">
+                    <h4 className="font-semibold text-gray-900 mb-2">Calculation Formulas:</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium text-gray-800">Attendance Rate:</p>
+                        <p className="text-gray-600">(Present Days / Total Working Days) × 100</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Working Hours:</p>
+                        <p className="text-gray-600">(Clock Out Time - Clock In Time) in minutes → converted to hours</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Late Arrival Rate:</p>
+                        <p className="text-gray-600">(Late Arrivals / Total Working Days) × 100</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -54,6 +90,36 @@ export default function ReportsPage() {
                 <li>• New hire analytics</li>
                 <li>• Performance metrics</li>
               </ul>
+              
+              {/* Formula UI for Employee Reports */}
+              <div className="mt-4">
+                <button 
+                  onClick={() => toggleFormula('employee')}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {activeFormula === 'employee' ? 'Hide Formulas' : 'Show Formulas'}
+                </button>
+                
+                {activeFormula === 'employee' && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs">
+                    <h4 className="font-semibold text-gray-900 mb-2">Calculation Formulas:</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium text-gray-800">Turnover Rate:</p>
+                        <p className="text-gray-600">(Employees Left / Average Employees) × 100</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Department Distribution:</p>
+                        <p className="text-gray-600">(Employees in Department / Total Employees) × 100</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">New Hire Rate:</p>
+                        <p className="text-gray-600">(New Hires in Period / Total Employees at Start) × 100</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -70,6 +136,40 @@ export default function ReportsPage() {
                 <li>• Overtime analysis</li>
                 <li>• Tax summaries</li>
               </ul>
+              
+              {/* Formula UI for Payroll Reports */}
+              <div className="mt-4">
+                <button 
+                  onClick={() => toggleFormula('payroll')}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {activeFormula === 'payroll' ? 'Hide Formulas' : 'Show Formulas'}
+                </button>
+                
+                {activeFormula === 'payroll' && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs">
+                    <h4 className="font-semibold text-gray-900 mb-2">Calculation Formulas:</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium text-gray-800">Gross Pay:</p>
+                        <p className="text-gray-600">Base Salary + Overtime Pay + Allowances</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Net Pay:</p>
+                        <p className="text-gray-600">Gross Pay - Deductions</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Overtime Pay:</p>
+                        <p className="text-gray-600">Overtime Hours × Overtime Rate</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Department Cost:</p>
+                        <p className="text-gray-600">Sum of All Employee Net Pay in Department</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -83,6 +183,23 @@ export default function ReportsPage() {
                   <p className="text-gray-500">Chart placeholder - Attendance trends</p>
                 </div>
               </div>
+              
+              {/* Formula UI for Attendance Chart */}
+              <div className="mt-4">
+                <button 
+                  onClick={() => toggleFormula('attendanceChart')}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {activeFormula === 'attendanceChart' ? 'Hide Formula' : 'Show Formula'}
+                </button>
+                
+                {activeFormula === 'attendanceChart' && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs">
+                    <h4 className="font-semibold text-gray-900 mb-2">Data Calculation:</h4>
+                    <p className="text-gray-600">Daily Attendance Rate = (Present Employees / Total Active Employees) × 100</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -92,6 +209,23 @@ export default function ReportsPage() {
                   <div className="text-4xl mb-2">🥧</div>
                   <p className="text-gray-500">Chart placeholder - Pie chart</p>
                 </div>
+              </div>
+              
+              {/* Formula UI for Department Chart */}
+              <div className="mt-4">
+                <button 
+                  onClick={() => toggleFormula('departmentChart')}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  {activeFormula === 'departmentChart' ? 'Hide Formula' : 'Show Formula'}
+                </button>
+                
+                {activeFormula === 'departmentChart' && (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs">
+                    <h4 className="font-semibold text-gray-900 mb-2">Data Calculation:</h4>
+                    <p className="text-gray-600">Department Percentage = (Employees in Department / Total Employees) × 100</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -116,6 +250,44 @@ export default function ReportsPage() {
                 <p className="text-2xl font-bold text-yellow-600">2.1%</p>
                 <p className="text-sm text-gray-600">Turnover Rate</p>
               </div>
+            </div>
+            
+            {/* Formula UI for Key Metrics */}
+            <div className="mt-6">
+              <button 
+                onClick={() => toggleFormula('keyMetrics')}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                {activeFormula === 'keyMetrics' ? 'Hide Calculation Formulas' : 'Show Calculation Formulas'}
+              </button>
+              
+              {activeFormula === 'keyMetrics' && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-3">Key Metrics Calculation:</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium text-gray-800">Attendance Rate:</p>
+                      <p className="text-gray-600 mb-2">(Total Present Days / Total Working Days) × 100</p>
+                      <p className="text-gray-500">Example: (190 / 200) × 100 = 95%</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Average Monthly Payroll:</p>
+                      <p className="text-gray-600 mb-2">Total Monthly Payroll / Number of Employees</p>
+                      <p className="text-gray-500">Example: $1,700,000 / 20 = $85,000</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Departments:</p>
+                      <p className="text-gray-600 mb-2">Count of Unique Departments</p>
+                      <p className="text-gray-500">Example: Engineering, Marketing, HR, etc. = 8</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">Turnover Rate:</p>
+                      <p className="text-gray-600 mb-2">(Employees Who Left / Average Employees) × 100</p>
+                      <p className="text-gray-500">Example: (4 / 190) × 100 = 2.1%</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

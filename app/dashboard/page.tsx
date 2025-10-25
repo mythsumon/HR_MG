@@ -531,13 +531,17 @@ const ScheduleCalendar = ({
   setSelectedDate, 
   setSelectedRecord,
   getStatusBadge,
-  getLocationIcon 
+  getLocationIcon,
+  userRole,
+  setShowCreateScheduleModal
 }: {
   setShowDetailModal: (show: boolean) => void;
   setSelectedDate: (date: Date | null) => void;
   setSelectedRecord: (record: AttendanceRecord | null) => void;
   getStatusBadge: (status: string) => JSX.Element | null;
   getLocationIcon: (location?: string) => string;
+  userRole: string | null;
+  setShowCreateScheduleModal: (show: boolean) => void;
 }) => {
   const [viewMode, setViewMode] = useState<'Today' | 'This Week' | 'Month'>('This Week');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -870,12 +874,17 @@ const ScheduleCalendar = ({
   );
 };
 
+
 const EmployeeDashboard = () => {
   const [notifications] = useState([
     { id: 1, message: "Your leave request was approved ✅", time: "2 hours ago" },
     { id: 2, message: "Payroll will be processed on Sep 30 💰", time: "1 day ago" },
     { id: 3, message: "New company policy uploaded 📄", time: "2 days ago" }
   ]);
+
+  // Add state for user role and schedule creation
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [showCreateScheduleModal, setShowCreateScheduleModal] = useState(false);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [attendanceService] = useState(() => SimpleAttendanceService.getInstance());
@@ -884,6 +893,12 @@ const EmployeeDashboard = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
+
+  // Check user role on component mount
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    setUserRole(role);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = attendanceService.subscribe(() => {
@@ -952,36 +967,38 @@ const EmployeeDashboard = () => {
               <p className="text-gray-600 dark:text-gray-400">Welcome back! Here's your overview for today.</p>
             </div>
             
-            {/* Notifications Bell */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                <span className="text-2xl">🔔</span>
-                {notifications.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium">
-                    {notifications.length}
-                  </span>
-                )}
-              </button>
+            <div className="flex items-center space-x-4">
+              {/* Notifications Bell */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <span className="text-2xl">🔔</span>
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
 
-              {/* Notifications Dropdown */}
-              {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-50">
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-600">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                {/* Notifications Dropdown */}
+                {showNotifications && (
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-50">
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-600">
+                      <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.map((notification) => (
+                        <div key={notification.id} className="p-4 border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
+                          <p className="text-sm text-gray-900 dark:text-white">{notification.message}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.time}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {notifications.map((notification) => (
-                      <div key={notification.id} className="p-4 border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <p className="text-sm text-gray-900 dark:text-white">{notification.message}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1308,6 +1325,8 @@ const EmployeeDashboard = () => {
               setSelectedRecord={setSelectedRecord}
               getStatusBadge={getStatusBadge}
               getLocationIcon={getLocationIcon}
+              userRole={userRole}
+              setShowCreateScheduleModal={setShowCreateScheduleModal}
             />
           </div>
         </div>
@@ -1603,8 +1622,45 @@ const EmployeeDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Create Schedule Modal - simplified version */}
+      {showCreateScheduleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Schedule</h3>
+                <button
+                  onClick={() => setShowCreateScheduleModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">📅</div>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Schedule creation functionality would be implemented here.
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  This feature is available only to HR managers.
+                </p>
+                <button
+                  onClick={() => setShowCreateScheduleModal(false)}
+                  className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </Layout>
   );
 };
 
 export default EmployeeDashboard;
+

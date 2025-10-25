@@ -50,6 +50,14 @@ export default function HRLeaveManagement() {
     reason: ''
   });
   const [densityMode, setDensityMode] = useState<'comfortable' | 'compact'>('comfortable');
+  
+  // Add state for leave types
+  const [leaveTypes, setLeaveTypes] = useState([
+    { value: 'annual', label: 'Annual Leave' },
+    { value: 'sick', label: 'Sick Leave' },
+    { value: 'unpaid', label: 'Unpaid Leave' },
+    { value: 'vacation', label: 'Vacation Leave' }
+  ]);
 
   // Mock data
   const mockEmployees: Employee[] = [
@@ -255,13 +263,6 @@ export default function HRLeaveManagement() {
     setRejectionReason('');
   };
 
-  const leaveTypes = [
-    { value: 'annual', label: 'Annual Leave' },
-    { value: 'sick', label: 'Sick Leave' },
-    { value: 'unpaid', label: 'Unpaid Leave' },
-    { value: 'vacation', label: 'Vacation Leave' }
-  ];
-
   const handleApproveRequest = (request: LeaveRequest) => {
     setSelectedRequest(request);
     setActionType('approve');
@@ -339,10 +340,9 @@ export default function HRLeaveManagement() {
             className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="all">Leave Type ▾</option>
-            <option value="annual">Annual Leave</option>
-            <option value="sick">Sick Leave</option>
-            <option value="unpaid">Unpaid Leave</option>
-            <option value="vacation">Vacation Leave</option>
+            {leaveTypes.map((type) => (
+              <option key={type.value} value={type.value}>{type.label}</option>
+            ))}
           </select>
 
           {/* Status Filter */}
@@ -1128,7 +1128,7 @@ export default function HRLeaveManagement() {
                     ))}
                   </select>
                 </div>
-                
+                  
                 {/* Date Selection */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1153,7 +1153,7 @@ export default function HRLeaveManagement() {
                     />
                   </div>
                 </div>
-                
+                  
                 {/* Reason */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reason (Optional)</label>
@@ -1165,7 +1165,7 @@ export default function HRLeaveManagement() {
                     placeholder="Please provide a brief reason for your leave request..."
                   />
                 </div>
-                
+                  
                 {/* Form Actions */}
                 <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button 
