@@ -71,8 +71,10 @@ export default function ScheduleManagementPage() {
     setShowCreateModal(false);
   };
 
-  const handleUpdateEvent = (updatedEvent: ScheduleEvent) => {
-    setEvents(events.map(event => event.id === updatedEvent.id ? updatedEvent : event));
+  const handleUpdateEvent = (updatedEvent: ScheduleEvent | Omit<ScheduleEvent, 'id'>) => {
+    if ('id' in updatedEvent) {
+      setEvents(events.map(event => event.id === updatedEvent.id ? updatedEvent : event));
+    }
     setShowEditModal(false);
     setCurrentEvent(null);
   };
@@ -360,7 +362,7 @@ function EventModal({
 }: { 
   mode: 'create' | 'edit';
   event?: ScheduleEvent;
-  onSubmit: (event: Omit<ScheduleEvent, 'id'> | ScheduleEvent) => void;
+  onSubmit: (event: ScheduleEvent | Omit<ScheduleEvent, 'id'>) => void;
   onClose: () => void;
 }) {
   const [formData, setFormData] = useState<Omit<ScheduleEvent, 'id'> | ScheduleEvent>({
