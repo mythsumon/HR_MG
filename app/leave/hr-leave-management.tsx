@@ -228,6 +228,98 @@ export default function HRLeaveManagement() {
     }
   };
 
+  // Export to CSV function
+  const exportToCSV = () => {
+    // Create CSV content
+    let csvContent = 'Employee ID,Employee Name,Department,Team,Leave Type,Start Date,End Date,Duration,Status,Reason\n';
+    
+    mockLeaveRequests.forEach(request => {
+      const row = [
+        request.employeeId,
+        request.employeeName,
+        request.department,
+        request.team,
+        request.leaveType,
+        request.startDate,
+        request.endDate,
+        request.duration,
+        request.status,
+        `"${request.reason.replace(/"/g, '"')}"`
+      ].join(',');
+      csvContent += row + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `leave_requests_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export to PDF function
+  const exportToPDF = () => {
+    // In a real implementation, this would generate a PDF
+    // For now, we'll show an alert and simulate the download
+    alert('PDF export functionality would generate a detailed report of all leave requests. In a production environment, this would create a PDF file with formatted data.');
+    
+    // Simulate PDF generation
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Leave Requests Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              table { border-collapse: collapse; width: 100%; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <h1>Leave Requests Report</h1>
+            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+            <table>
+              <tr>
+                <th>Employee</th>
+                <th>Department</th>
+                <th>Leave Type</th>
+                <th>Dates</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Reason</th>
+              </tr>
+      `);
+      
+      mockLeaveRequests.forEach(request => {
+        printWindow.document.write(`
+          <tr>
+            <td>${request.employeeName}</td>
+            <td>${request.department}</td>
+            <td>${request.leaveType}</td>
+            <td>${request.startDate} to ${request.endDate}</td>
+            <td>${request.duration} days</td>
+            <td>${request.status}</td>
+            <td>${request.reason}</td>
+          </tr>
+        `);
+      });
+      
+      printWindow.document.write(`
+            </table>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   const handleSubmitRequest = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Leave request submitted:', leaveRequest);
@@ -395,10 +487,16 @@ export default function HRLeaveManagement() {
 
           {/* Export */}
           <div className="flex space-x-2">
-            <button className="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+            <button 
+              onClick={exportToCSV}
+              className="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
               Export CSV
             </button>
-            <button className="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+            <button 
+              onClick={exportToPDF}
+              className="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
               Export PDF
             </button>
           </div>
@@ -1072,10 +1170,14 @@ export default function HRLeaveManagement() {
               {/* Action Buttons */}
               <div className="flex justify-end space-x-3">
                 <button 
-                  onClick={() => setShowApprovalModal(false)}
+                  onClick={() => {
+                    setShowApprovalModal(false);
+                    setSelectedRequest(null);
+                    setRejectionReason('');
+                  }}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                 >
-                  Cancel
+                  🚫 Cancel
                 </button>
                 <button 
                   onClick={confirmAction}

@@ -27,6 +27,15 @@ export default function HRPayrollManagement() {
   const [showPayslipDrawer, setShowPayslipDrawer] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<PayrollEmployee | null>(null);
   const [showHRPayslip, setShowHRPayslip] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editPayrollData, setEditPayrollData] = useState({
+    id: '',
+    baseSalary: 0,
+    overtimeHours: 0,
+    overtimeRate: 0,
+    allowances: [{ name: '', amount: 0 }],
+    deductions: [{ name: '', amount: 0 }],
+  });
 
   // Mock data
   const mockEmployees: PayrollEmployee[] = [
@@ -84,6 +93,128 @@ export default function HRPayrollManagement() {
 
   const totalAllowances = (allowances: { amount: number }[]) => allowances.reduce((sum, item) => sum + item.amount, 0);
   const totalDeductions = (deductions: { amount: number }[]) => deductions.reduce((sum, item) => sum + item.amount, 0);
+
+  // Initialize edit data when selecting an employee for editing
+  const initializeEditData = (employee: PayrollEmployee) => {
+    setEditPayrollData({
+      id: employee.id,
+      baseSalary: employee.baseSalary,
+      overtimeHours: employee.overtimeHours,
+      overtimeRate: employee.overtimeHours > 0 ? employee.overtime / employee.overtimeHours : 0,
+      allowances: employee.allowances.map(item => ({ ...item, amount: item.amount })),
+      deductions: employee.deductions.map(item => ({ ...item, amount: item.amount })),
+    });
+  };
+
+  // Handle edit button click
+  const handleEditClick = (employee: PayrollEmployee) => {
+    setSelectedEmployee(employee);
+    initializeEditData(employee);
+    setShowEditModal(true);
+  };
+
+  // Handle input changes in edit modal
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditPayrollData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
+  };
+
+  // Handle allowance changes
+  const handleAllowanceChange = (index: number, field: string, value: string) => {
+    const newAllowances = [...editPayrollData.allowances];
+    newAllowances[index] = { ...newAllowances[index], [field]: field === 'amount' ? parseFloat(value) || 0 : value };
+    setEditPayrollData(prev => ({ ...prev, allowances: newAllowances }));
+  };
+
+  // Handle deduction changes
+  const handleDeductionChange = (index: number, field: string, value: string) => {
+    const newDeductions = [...editPayrollData.deductions];
+    newDeductions[index] = { ...newDeductions[index], [field]: field === 'amount' ? parseFloat(value) || 0 : value };
+    setEditPayrollData(prev => ({ ...prev, deductions: newDeductions }));
+  };
+
+  // Add new allowance
+  const addAllowance = () => {
+    setEditPayrollData(prev => ({
+      ...prev,
+      allowances: [...prev.allowances, { name: '', amount: 0 }]
+    }));
+  };
+
+  // Add new deduction
+  const addDeduction = () => {
+    setEditPayrollData(prev => ({
+      ...prev,
+      deductions: [...prev.deductions, { name: '', amount: 0 }]
+    }));
+  };
+
+  // Remove allowance
+  const removeAllowance = (index: number) => {
+    setEditPayrollData(prev => ({
+      ...prev,
+      allowances: prev.allowances.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Remove deduction
+  const removeDeduction = (index: number) => {
+    setEditPayrollData(prev => ({
+      ...prev,
+      deductions: prev.deductions.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Calculate overtime pay
+  const calculateOvertime = () => {
+    return editPayrollData.overtimeHours * editPayrollData.overtimeRate;
+  };
+
+  // Calculate total allowances
+  const calculateTotalAllowances = () => {
+    return editPayrollData.allowances.reduce((sum, item) => sum + item.amount, 0);
+  };
+
+  // Calculate total deductions
+  const calculateTotalDeductions = () => {
+    return editPayrollData.deductions.reduce((sum, item) => sum + item.amount, 0);
+  };
+
+  // Calculate gross pay
+  const calculateGrossPay = () => {
+    return editPayrollData.baseSalary + calculateOvertime() + calculateTotalAllowances();
+  };
+
+  // Calculate net pay
+  const calculateNetPay = () => {
+    return calculateGrossPay() - calculateTotalDeductions();
+  };
+
+  // Handle save changes
+  const handleSaveChanges = () => {
+    // In a real application, this would update the backend
+    console.log('Saving payroll changes:', editPayrollData);
+    
+    // Update the employee data in the mock data
+    const updatedEmployees = mockEmployees.map(emp => 
+      emp.id === editPayrollData.id 
+        ? { 
+            ...emp, 
+            baseSalary: editPayrollData.baseSalary,
+            overtime: calculateOvertime(),
+            overtimeHours: editPayrollData.overtimeHours,
+            allowances: editPayrollData.allowances,
+            deductions: editPayrollData.deductions,
+            netPay: calculateNetPay()
+          } 
+        : emp
+    );
+    
+    // For demo purposes, we'll just close the modal
+    setShowEditModal(false);
+    // In a real app, you would update the state with the new employee data
+    alert('Payroll changes saved successfully!');
+  };
 
   const totals = filteredEmployees.reduce((acc, emp) => ({
     baseSalary: acc.baseSalary + emp.baseSalary,
@@ -250,7 +381,12 @@ export default function HRPayrollManagement() {
                       >
                         View
                       </button>
-                      <button className="text-green-600 hover:text-green-800 text-sm">Approve</button>
+                      <button 
+                        onClick={() => handleEditClick(employee)}
+                        className="text-yellow-600 hover:text-yellow-800 text-sm"
+                      >
+                        Edit
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -285,36 +421,100 @@ export default function HRPayrollManagement() {
               </div>
               
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Earnings</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between"><span>Base Salary</span><span className="text-green-600">{formatCurrency(selectedEmployee.baseSalary)}</span></div>
-                    <div className="flex justify-between"><span>Overtime</span><span className="text-green-600">{formatCurrency(selectedEmployee.overtime)}</span></div>
-                    {selectedEmployee.allowances.map((item, idx) => (
-                      <div key={idx} className="flex justify-between"><span>{item.name}</span><span className="text-green-600">{formatCurrency(item.amount)}</span></div>
-                    ))}
+                {/* Overtime Section */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">⏱️ Overtime Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white dark:bg-gray-700 p-3 rounded-lg">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Hours</div>
+                      <div className="font-bold text-lg">{selectedEmployee.overtimeHours}</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-700 p-3 rounded-lg">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Overtime Pay</div>
+                      <div className="font-bold text-lg text-green-600">{formatCurrency(selectedEmployee.overtime)}</div>
+                    </div>
                   </div>
                 </div>
                 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Deductions</h3>
+                {/* Allowances Section */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">💰 Allowances</h3>
+                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      Total: {formatCurrency(selectedEmployee.allowances.reduce((sum, item) => sum + item.amount, 0))}
+                    </span>
+                  </div>
                   <div className="space-y-2">
-                    {selectedEmployee.deductions.map((item, idx) => (
-                      <div key={idx} className="flex justify-between"><span>{item.name}</span><span className="text-red-600">-{formatCurrency(item.amount)}</span></div>
-                    ))}
+                    {selectedEmployee.allowances.length > 0 ? (
+                      selectedEmployee.allowances.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white dark:bg-gray-700 p-3 rounded">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(item.amount)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-3">No allowances added</div>
+                    )}
                   </div>
                 </div>
                 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-xl font-bold">
-                    <span>Net Pay</span>
-                    <span className="text-green-600">{formatCurrency(selectedEmployee.netPay)}</span>
+                {/* Deductions Section */}
+                <div className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">💸 Deductions</h3>
+                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      Total: {formatCurrency(selectedEmployee.deductions.reduce((sum, item) => sum + item.amount, 0))}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedEmployee.deductions.length > 0 ? (
+                      selectedEmployee.deductions.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white dark:bg-gray-700 p-3 rounded">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="font-semibold text-red-600">-{formatCurrency(item.amount)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-3">No deductions applied</div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Summary Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Payroll Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Base Salary</span>
+                      <span className="font-medium">{formatCurrency(selectedEmployee.baseSalary)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Overtime Pay</span>
+                      <span className="font-medium text-green-600">{formatCurrency(selectedEmployee.overtime)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Allowances</span>
+                      <span className="font-medium text-green-600">{formatCurrency(selectedEmployee.allowances.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700 font-semibold">
+                      <span>Gross Pay</span>
+                      <span>{formatCurrency(selectedEmployee.baseSalary + selectedEmployee.overtime + selectedEmployee.allowances.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    <div className="flex justify-between pt-2">
+                      <span className="text-gray-600 dark:text-gray-400">Total Deductions</span>
+                      <span className="font-medium text-red-600">-{formatCurrency(selectedEmployee.deductions.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700 font-bold text-lg">
+                      <span>Net Pay</span>
+                      <span className="text-green-600">{formatCurrency(selectedEmployee.netPay)}</span>
+                    </div>
                   </div>
                 </div>
                 
                 <div className="flex space-x-2">
                   <button className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700">Approve</button>
                   <button className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Download PDF</button>
+                  <button className="flex-1 bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600">Edit</button>
                 </div>
               </div>
             </div>
@@ -336,33 +536,347 @@ export default function HRPayrollManagement() {
               </div>
               
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Earnings</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between"><span>Base Salary</span><span className="text-green-600">{formatCurrency(hrPayslip.baseSalary)}</span></div>
-                    {hrPayslip.allowances.map((item, idx) => (
-                      <div key={idx} className="flex justify-between"><span>{item.name}</span><span className="text-green-600">{formatCurrency(item.amount)}</span></div>
-                    ))}
+                {/* Overtime Section */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">⏱️ Overtime Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white dark:bg-gray-700 p-3 rounded-lg">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Hours</div>
+                      <div className="font-bold text-lg">0</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-700 p-3 rounded-lg">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Overtime Pay</div>
+                      <div className="font-bold text-lg text-green-600">{formatCurrency(0)}</div>
+                    </div>
                   </div>
                 </div>
                 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Deductions</h3>
+                {/* Allowances Section */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">💰 Allowances</h3>
+                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      Total: {formatCurrency(hrPayslip.allowances.reduce((sum, item) => sum + item.amount, 0))}
+                    </span>
+                  </div>
                   <div className="space-y-2">
-                    {hrPayslip.deductions.map((item, idx) => (
-                      <div key={idx} className="flex justify-between"><span>{item.name}</span><span className="text-red-600">-{formatCurrency(item.amount)}</span></div>
-                    ))}
+                    {hrPayslip.allowances.length > 0 ? (
+                      hrPayslip.allowances.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white dark:bg-gray-700 p-3 rounded">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(item.amount)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-3">No allowances added</div>
+                    )}
                   </div>
                 </div>
                 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-xl font-bold">
-                    <span>Net Pay</span>
-                    <span className="text-green-600">{formatCurrency(hrPayslip.netPay)}</span>
+                {/* Deductions Section */}
+                <div className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">💸 Deductions</h3>
+                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      Total: {formatCurrency(hrPayslip.deductions.reduce((sum, item) => sum + item.amount, 0))}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {hrPayslip.deductions.length > 0 ? (
+                      hrPayslip.deductions.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white dark:bg-gray-700 p-3 rounded">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="font-semibold text-red-600">-{formatCurrency(item.amount)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-3">No deductions applied</div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Summary Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Payroll Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Base Salary</span>
+                      <span className="font-medium">{formatCurrency(hrPayslip.baseSalary)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Overtime Pay</span>
+                      <span className="font-medium text-green-600">{formatCurrency(0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Allowances</span>
+                      <span className="font-medium text-green-600">{formatCurrency(hrPayslip.allowances.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700 font-semibold">
+                      <span>Gross Pay</span>
+                      <span>{formatCurrency(hrPayslip.baseSalary + 0 + hrPayslip.allowances.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    <div className="flex justify-between pt-2">
+                      <span className="text-gray-600 dark:text-gray-400">Total Deductions</span>
+                      <span className="font-medium text-red-600">-{formatCurrency(hrPayslip.deductions.reduce((sum, item) => sum + item.amount, 0))}</span>
+                    </div>
+                    <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700 font-bold text-lg">
+                      <span>Net Pay</span>
+                      <span className="text-green-600">{formatCurrency(hrPayslip.netPay)}</span>
+                    </div>
                   </div>
                 </div>
                 
                 <button className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700">Download PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Payroll Modal */}
+      {showEditModal && selectedEmployee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowEditModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Payroll for {selectedEmployee.name}</h2>
+                  <p className="text-gray-600 dark:text-gray-400">Employee ID: {selectedEmployee.id}</p>
+                </div>
+                <button 
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Base Salary */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Base Salary ($)
+                  </label>
+                  <input
+                    type="number"
+                    name="baseSalary"
+                    value={editPayrollData.baseSalary}
+                    onChange={handleEditInputChange}
+                    className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+
+                {/* Overtime Section */}
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">⏱️ Overtime</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Hours
+                      </label>
+                      <input
+                        type="number"
+                        name="overtimeHours"
+                        value={editPayrollData.overtimeHours}
+                        onChange={handleEditInputChange}
+                        className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="0"
+                        step="0.1"
+                        min="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Rate ($/hour)
+                      </label>
+                      <input
+                        type="number"
+                        name="overtimeRate"
+                        value={editPayrollData.overtimeRate}
+                        onChange={handleEditInputChange}
+                        className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Overtime Total:</span>
+                      <span className="font-medium text-green-600">${calculateOvertime().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Allowances Section */}
+                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">💰 Allowances</h3>
+                    <button
+                      type="button"
+                      onClick={addAllowance}
+                      className="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                    >
+                      + Add Allowance
+                    </button>
+                  </div>
+                  
+                  {editPayrollData.allowances.map((allowance, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <input
+                          type="text"
+                          value={allowance.name}
+                          onChange={(e) => handleAllowanceChange(index, 'name', e.target.value)}
+                          className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Allowance name"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="number"
+                          value={allowance.amount}
+                          onChange={(e) => handleAllowanceChange(index, 'amount', e.target.value)}
+                          className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        {editPayrollData.allowances.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeAllowance(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Total Allowances:</span>
+                      <span className="font-medium text-green-600">${calculateTotalAllowances().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deductions Section */}
+                <div className="p-4 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">💸 Deductions</h3>
+                    <button
+                      type="button"
+                      onClick={addDeduction}
+                      className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                    >
+                      + Add Deduction
+                    </button>
+                  </div>
+                  
+                  {editPayrollData.deductions.map((deduction, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <input
+                          type="text"
+                          value={deduction.name}
+                          onChange={(e) => handleDeductionChange(index, 'name', e.target.value)}
+                          className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Deduction name"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="number"
+                          value={deduction.amount}
+                          onChange={(e) => handleDeductionChange(index, 'amount', e.target.value)}
+                          className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                        />
+                      </div>
+                      <div>
+                        {editPayrollData.deductions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeDeduction(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Total Deductions:</span>
+                      <span className="font-medium text-red-600">${calculateTotalDeductions().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Payroll Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Base Salary</span>
+                      <span className="font-medium">${editPayrollData.baseSalary.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Overtime Pay</span>
+                      <span className="font-medium text-green-600">${calculateOvertime().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Allowances</span>
+                      <span className="font-medium text-green-600">${calculateTotalAllowances().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700 font-semibold">
+                      <span>Gross Pay</span>
+                      <span>${calculateGrossPay().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-2">
+                      <span className="text-gray-600 dark:text-gray-400">Total Deductions</span>
+                      <span className="font-medium text-red-600">${calculateTotalDeductions().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-3 border-t border-gray-200 dark:border-gray-700 font-bold text-lg">
+                      <span>Net Pay</span>
+                      <span className="text-green-600">${calculateNetPay().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <button 
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={handleSaveChanges}
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                  >
+                    Save Changes
+                  </button>
+                </div>
               </div>
             </div>
           </div>

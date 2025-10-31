@@ -1080,17 +1080,17 @@ const EmployeeDashboard = () => {
                   <span className="text-2xl">💰</span>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Period:</span>
                     <span className="font-medium text-gray-900 dark:text-white">Sep 2024</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Gross Salary:</span>
-                    <span className="font-medium text-green-600 dark:text-green-400">$5,500</span>
+                    <span className="font-semibold text-lg text-gray-900 dark:text-white" style={{ fontVariantNumeric: 'tabular-nums' }}>$xxx</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Net Salary:</span>
-                    <span className="font-bold text-green-600 dark:text-green-400">$4,850</span>
+                    <span className="font-bold text-xl text-gray-900 dark:text-white" style={{ fontVariantNumeric: 'tabular-nums' }}>$xxx</span>
                   </div>
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
                     <button className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors mb-2">
