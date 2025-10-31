@@ -136,6 +136,8 @@ const HRAttendanceView: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate] = useState(new Date());
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<AttendanceRecord | null>(null);
 
   // Helper function for event icons
   const getEventIcon = (type: string): string => {
@@ -175,6 +177,18 @@ const HRAttendanceView: React.FC = () => {
       'leave': { icon: '🌴', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
     };
     return displays[status as keyof typeof displays] || displays.present;
+  };
+
+  // Handle view details click
+  const handleViewDetails = (record: AttendanceRecord) => {
+    setSelectedEmployee(record);
+    setShowDetailModal(true);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setShowDetailModal(false);
+    setSelectedEmployee(null);
   };
 
   return (
@@ -352,7 +366,10 @@ const HRAttendanceView: React.FC = () => {
                             {record.totalHours}
                           </div>
                           
-                          <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                          <button 
+                            onClick={() => handleViewDetails(record)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
                             View Details ▸
                           </button>
                         </div>
@@ -382,6 +399,7 @@ const HRAttendanceView: React.FC = () => {
                       <th className="px-4 py-3 text-center text-sm font-medium text-gray-900 border-b">Wed</th>
                       <th className="px-4 py-3 text-center text-sm font-medium text-gray-900 border-b">Thu</th>
                       <th className="px-4 py-3 text-center text-sm font-medium text-gray-900 border-b">Fri</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium text-gray-900 border-b">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -410,6 +428,14 @@ const HRAttendanceView: React.FC = () => {
                             </td>
                           );
                         })}
+                        <td className="px-4 py-3 text-center">
+                          <button 
+                            onClick={() => handleViewDetails(record)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            View Details
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -485,7 +511,10 @@ const HRAttendanceView: React.FC = () => {
                           </div>
                         </div>
                         
-                        <button className="w-full text-blue-600 hover:text-blue-800 text-sm font-medium py-2 border border-blue-200 rounded hover:bg-blue-50 transition-colors">
+                        <button 
+                          onClick={() => handleViewDetails(record)}
+                          className="w-full text-blue-600 hover:text-blue-800 text-sm font-medium py-2 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
+                        >
                           [ View Full Attendance ▸ ]
                         </button>
                       </div>
@@ -582,6 +611,152 @@ const HRAttendanceView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Attendance Detail Modal */}
+      {showDetailModal && selectedEmployee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Attendance Details</h3>
+                <button 
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Employee Header */}
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <span className="text-3xl">{selectedEmployee.avatar}</span>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">{selectedEmployee.employeeName}</h4>
+                    <p className="text-gray-600">{selectedEmployee.employeeId} • {selectedEmployee.department} • {selectedEmployee.role}</p>
+                  </div>
+                </div>
+                
+                {/* Today's Attendance */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h5 className="text-md font-semibold text-gray-900 mb-3">Today's Attendance ({selectedEmployee.date})</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        <span className={`font-medium ${getStatusDisplay(selectedEmployee.status).color}`}>
+                          {selectedEmployee.status.charAt(0).toUpperCase() + selectedEmployee.status.slice(1)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Check-in:</span>
+                        <span className="font-medium">{selectedEmployee.checkIn}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Check-out:</span>
+                        <span className="font-medium">{selectedEmployee.checkOut}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Hours:</span>
+                        <span className="font-medium text-blue-600">{selectedEmployee.totalHours}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status Icon:</span>
+                        <span className="text-2xl">{getStatusDisplay(selectedEmployee.status).icon}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Weekly Attendance */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h5 className="text-md font-semibold text-gray-900 mb-3">Weekly Attendance (Sep 15–19)</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">Day</th>
+                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Status</th>
+                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Check-in</th>
+                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Check-out</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {Object.entries(selectedEmployee.weekData || {}).map(([day, data]) => {
+                          const statusDisplay = getStatusDisplay(data.status);
+                          return (
+                            <tr key={day} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 text-sm text-gray-900">{day}</td>
+                              <td className="px-3 py-2 text-center">
+                                <div className="flex items-center justify-center">
+                                  <span className={`mr-1 ${statusDisplay.color}`}>{statusDisplay.icon}</span>
+                                  <span className="text-sm">{data.status}</span>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 text-center text-sm text-gray-900">
+                                {data.checkIn || '–'}
+                              </td>
+                              <td className="px-3 py-2 text-center text-sm text-gray-900">
+                                {data.checkOut || '–'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                {/* Weekly Summary */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h5 className="text-md font-semibold text-gray-900 mb-3">Weekly Summary</h5>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-green-50 p-3 rounded-lg text-center">
+                      <div className="text-xl font-bold text-green-600">
+                        {Object.values(selectedEmployee.weekData || {}).filter(d => d.status === 'present').length}
+                      </div>
+                      <div className="text-sm text-green-700">Present</div>
+                    </div>
+                    <div className="bg-yellow-50 p-3 rounded-lg text-center">
+                      <div className="text-xl font-bold text-yellow-600">
+                        {Object.values(selectedEmployee.weekData || {}).filter(d => d.status === 'late').length}
+                      </div>
+                      <div className="text-sm text-yellow-700">Late</div>
+                    </div>
+                    <div className="bg-red-50 p-3 rounded-lg text-center">
+                      <div className="text-xl font-bold text-red-600">
+                        {Object.values(selectedEmployee.weekData || {}).filter(d => d.status === 'absent').length}
+                      </div>
+                      <div className="text-sm text-red-700">Absent</div>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded-lg text-center">
+                      <div className="text-xl font-bold text-blue-600">
+                        {Object.values(selectedEmployee.weekData || {}).filter(d => d.status === 'leave').length}
+                      </div>
+                      <div className="text-sm text-blue-700">Leave</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={closeModal}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Export Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
