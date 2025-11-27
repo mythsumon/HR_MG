@@ -229,6 +229,7 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>employee@company.com</div>
+                    <div className={`text-xs font-medium mt-1 ${isDarkTheme ? 'text-blue-300' : 'text-blue-600'}`}>Password: employee123</div>
                   </button>
                   
                   <button
@@ -246,6 +247,7 @@ export default function LoginPage() {
                       </div>
                     </div>
                     <div className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>manager@company.com</div>
+                    <div className={`text-xs font-medium mt-1 ${isDarkTheme ? 'text-blue-300' : 'text-blue-600'}`}>Password: manager123</div>
                   </button>
                 </div>
                 <p className={`text-xs mt-3 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>Click to login instantly or use manual credentials below</p>

@@ -42,7 +42,8 @@ export default function EmployeesPage() {
     status: 'active',
     profilePhoto: null as File | null,
     resume: null as File | null,
-    idProof: null as File | null
+    idProof: null as File | null,
+    office: '' // Add office field
   });
 
   // Mock employee data with today's attendance
@@ -159,7 +160,8 @@ export default function EmployeesPage() {
       status: 'active',
       profilePhoto: null,
       resume: null,
-      idProof: null
+      idProof: null,
+      office: '' // Add office field
     });
   };
 
@@ -179,7 +181,8 @@ export default function EmployeesPage() {
       phone: '+1234567890',
       profilePhoto: null,
       resume: null,
-      idProof: null
+      idProof: null,
+      office: 'Main Office' // Add default office
     });
     setShowEditModal(true);
   };
@@ -629,6 +632,21 @@ export default function EmployeesPage() {
                       </div>
                       
                       <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Office Location</label>
+                        <select
+                          value={newEmployee.office}
+                          onChange={(e) => setNewEmployee(prev => ({ ...prev, office: e.target.value }))}
+                          className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                          required
+                        >
+                          <option value="">Select Office</option>
+                          <option value="Main Office">Main Office</option>
+                          <option value="Downtown Branch">Downtown Branch</option>
+                          <option value="Tech Hub">Tech Hub</option>
+                        </select>
+                      </div>
+                      
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
                         <input
                           type="text"
@@ -971,6 +989,20 @@ export default function EmployeesPage() {
                           className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
                           required
                         />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Office Location</label>
+                        <select
+                          value={editEmployee.office}
+                          onChange={(e) => setEditEmployee((prev: any) => ({ ...prev, office: e.target.value }))}
+                          className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                        >
+                          <option value="">Select Office</option>
+                          <option value="Main Office">Main Office</option>
+                          <option value="Downtown Branch">Downtown Branch</option>
+                          <option value="Tech Hub">Tech Hub</option>
+                        </select>
                       </div>
                       
                       <div>

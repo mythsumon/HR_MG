@@ -31,6 +31,8 @@ const navigation: NavigationItem[] = [
   { name: 'Schedule Management', href: '/schedule', icon: '🗓️', role: 'manager', group: 'hr' },
   { name: 'Payroll', href: '/payroll', icon: '💰', role: 'manager', group: 'hr' },
   { name: 'Reports', href: '/reports', icon: '📊', role: 'manager', group: 'hr' },
+  { name: 'Office Management', href: '/office', icon: '🏢', role: 'manager', group: 'hr' },
+  { name: 'Activity Log', href: '/activity-log', icon: '📝', role: 'manager', group: 'hr' },
   { name: 'Notice Board', href: '/notice-board', icon: '📢', role: 'all', group: 'hr', badge: 'NEW' },
   { name: 'FAQ', href: '/faq', icon: '❓', role: 'all', group: 'hr' },
   { name: 'Q&A / Helpdesk', href: '/helpdesk', icon: '💬', role: 'all', group: 'hr' },
