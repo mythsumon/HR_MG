@@ -47,6 +47,9 @@ export default function HRLeaveManagement() {
     leaveType: '',
     startDate: '',
     endDate: '',
+    startTime: '09:00 AM',
+    endTime: '05:00 PM',
+    timeOption: 'all_day', // 'all_day', 'specific_time'
     reason: ''
   });
   const [densityMode, setDensityMode] = useState<'comfortable' | 'compact'>('comfortable');
@@ -329,6 +332,9 @@ export default function HRLeaveManagement() {
       leaveType: '',
       startDate: '',
       endDate: '',
+      startTime: '09:00 AM',
+      endTime: '05:00 PM',
+      timeOption: 'all_day',
       reason: ''
     });
   };
@@ -1253,6 +1259,132 @@ export default function HRLeaveManagement() {
                       className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
                       required
                     />
+                  </div>
+                </div>
+                
+                {/* Time Options */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Options</label>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          name="timeOption"
+                          checked={leaveRequest.timeOption === 'all_day'}
+                          onChange={() => setLeaveRequest(prev => ({ ...prev, timeOption: 'all_day' }))}
+                          className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-gray-700 dark:text-gray-300">All Day</span>
+                      </label>
+                    </div>
+                    
+                    <div>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          name="timeOption"
+                          checked={leaveRequest.timeOption === 'specific_time'}
+                          onChange={() => setLeaveRequest(prev => ({ ...prev, timeOption: 'specific_time' }))}
+                          className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                        />
+                        <span className="ml-2 text-gray-700 dark:text-gray-300">Specific Time</span>
+                      </label>
+                    </div>
+                    
+                    {leaveRequest.timeOption === 'specific_time' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6 mt-2">
+                        <div>
+                          <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Start Time</label>
+                          <div className="flex space-x-2">
+                            <select
+                              value={leaveRequest.startTime.split(' ')[0].split(':')[0] || '09'}
+                              onChange={(e) => {
+                                const minutes = leaveRequest.startTime.split(' ')[0].split(':')[1] || '00';
+                                const period = leaveRequest.startTime.split(' ')[1] || 'AM';
+                                setLeaveRequest(prev => ({ ...prev, startTime: `${e.target.value}:${minutes} ${period}` }));
+                              }}
+                              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              {[...Array(12)].map((_, i) => {
+                                const hour = i === 0 ? 12 : i;
+                                return <option key={i} value={hour.toString().padStart(2, '0')}>{hour}</option>;
+                              })}
+                            </select>
+                            <span className="self-center">:</span>
+                            <select
+                              value={leaveRequest.startTime.split(' ')[0].split(':')[1] || '00'}
+                              onChange={(e) => {
+                                const hours = leaveRequest.startTime.split(' ')[0].split(':')[0] || '09';
+                                const period = leaveRequest.startTime.split(' ')[1] || 'AM';
+                                setLeaveRequest(prev => ({ ...prev, startTime: `${hours}:${e.target.value} ${period}` }));
+                              }}
+                              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              {[0, 15, 30, 45].map(minute => (
+                                <option key={minute} value={minute.toString().padStart(2, '0')}>{minute.toString().padStart(2, '0')}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={leaveRequest.startTime.split(' ')[1] || 'AM'}
+                              onChange={(e) => {
+                                const timePart = leaveRequest.startTime.split(' ')[0];
+                                setLeaveRequest(prev => ({ ...prev, startTime: `${timePart} ${e.target.value}` }));
+                              }}
+                              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">End Time</label>
+                          <div className="flex space-x-2">
+                            <select
+                              value={leaveRequest.endTime.split(' ')[0].split(':')[0] || '05'}
+                              onChange={(e) => {
+                                const minutes = leaveRequest.endTime.split(' ')[0].split(':')[1] || '00';
+                                const period = leaveRequest.endTime.split(' ')[1] || 'PM';
+                                setLeaveRequest(prev => ({ ...prev, endTime: `${e.target.value}:${minutes} ${period}` }));
+                              }}
+                              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              {[...Array(12)].map((_, i) => {
+                                const hour = i === 0 ? 12 : i;
+                                return <option key={i} value={hour.toString().padStart(2, '0')}>{hour}</option>;
+                              })}
+                            </select>
+                            <span className="self-center">:</span>
+                            <select
+                              value={leaveRequest.endTime.split(' ')[0].split(':')[1] || '00'}
+                              onChange={(e) => {
+                                const hours = leaveRequest.endTime.split(' ')[0].split(':')[0] || '05';
+                                const period = leaveRequest.endTime.split(' ')[1] || 'PM';
+                                setLeaveRequest(prev => ({ ...prev, endTime: `${hours}:${e.target.value} ${period}` }));
+                              }}
+                              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              {[0, 15, 30, 45].map(minute => (
+                                <option key={minute} value={minute.toString().padStart(2, '0')}>{minute.toString().padStart(2, '0')}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={leaveRequest.endTime.split(' ')[1] || 'PM'}
+                              onChange={(e) => {
+                                const timePart = leaveRequest.endTime.split(' ')[0];
+                                setLeaveRequest(prev => ({ ...prev, endTime: `${timePart} ${e.target.value}` }));
+                              }}
+                              className="border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500"
+                            >
+                              <option value="AM">AM</option>
+                              <option value="PM">PM</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                   
