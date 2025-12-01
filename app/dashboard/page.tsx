@@ -885,15 +885,6 @@ const EmployeeDashboard = () => {
   // Add state for user role and schedule creation
   const [userRole, setUserRole] = useState<string | null>(null);
   const [showCreateScheduleModal, setShowCreateScheduleModal] = useState(false);
-  // Add state for leave requests
-  const [leaveRequests, setLeaveRequests] = useState([
-    { id: '1', employee: 'John Smith', type: 'Annual Leave', startDate: '2024-09-20', endDate: '2024-09-22', status: 'pending', days: 3 },
-    { id: '2', employee: 'Sarah Johnson', type: 'Sick Leave', startDate: '2024-09-18', endDate: '2024-09-18', status: 'approved', days: 1 },
-    { id: '3', employee: 'Mike Davis', type: 'Vacation', startDate: '2024-09-25', endDate: '2024-09-27', status: 'pending', days: 3 },
-    { id: '4', employee: 'Emma Wilson', type: 'Personal', startDate: '2024-09-19', endDate: '2024-09-19', status: 'rejected', days: 1 }
-  ]);
-  const [showLeaveModal, setShowLeaveModal] = useState(false);
-  const [selectedLeaveRequest, setSelectedLeaveRequest] = useState<any>(null);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [attendanceService] = useState(() => SimpleAttendanceService.getInstance());
@@ -908,20 +899,6 @@ const EmployeeDashboard = () => {
     const role = localStorage.getItem('userRole');
     setUserRole(role);
   }, []);
-
-  // Handle leave request approval
-  const handleApproveLeave = (id: string) => {
-    setLeaveRequests(prev => prev.map(request => 
-      request.id === id ? { ...request, status: 'approved' } : request
-    ));
-  };
-
-  // Handle leave request rejection
-  const handleRejectLeave = (id: string) => {
-    setLeaveRequests(prev => prev.map(request => 
-      request.id === id ? { ...request, status: 'rejected' } : request
-    ));
-  };
 
   useEffect(() => {
     const unsubscribe = attendanceService.subscribe(() => {
@@ -1307,34 +1284,6 @@ const EmployeeDashboard = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    {/* Personal Schedule Link */}
-                    <a
-                      href="/personal-schedule"
-                      className="block border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl">📅</span>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">Personal Schedule</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Manage your personal events and schedule</p>
-                        </div>
-                      </div>
-                    </a>
-
-                    {/* Organization Link - Manager Only */}
-                    <a
-                      href="/organization"
-                      className="block border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl">🏢</span>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">Organization</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Manage departments and teams structure</p>
-                        </div>
-                      </div>
-                    </a>
-
                     {/* Q&A / Helpdesk Link */}
                     <a
                       href="/helpdesk"
@@ -1367,78 +1316,6 @@ const EmployeeDashboard = () => {
               </div>
             </div>
           </div>
-          
-          {/* Leave Requests Section - HR Personnel */}
-          {(userRole === 'manager' || userRole === 'hr') && (
-            <div className="mt-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">📋 Pending Leave Requests</h3>
-                  <span className="text-2xl">📅</span>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Employee</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Leave Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Dates</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Days</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                      {leaveRequests.filter(req => req.status === 'pending').map((request) => (
-                        <tr key={request.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{request.employee}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{request.type}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {request.startDate} to {request.endDate}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{request.days}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                              ⏳ Pending
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
-                            <button
-                              onClick={() => {
-                                setSelectedLeaveRequest(request);
-                                setShowLeaveModal(true);
-                              }}
-                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                            >
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  
-                  {leaveRequests.filter(req => req.status === 'pending').length === 0 && (
-                    <div className="text-center py-8">
-                      <div className="text-4xl mb-2">✅</div>
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No Pending Requests</h4>
-                      <p className="text-gray-500 dark:text-gray-400">All leave requests have been processed.</p>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="mt-4 flex justify-end">
-                  <a 
-                    href="/leave" 
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    View All Leave Requests
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
           
           {/* Calendar Section - Full Width Below Cards */}
           <div className="mt-6">
@@ -1479,7 +1356,7 @@ const EmployeeDashboard = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Clock In Time:</span>
-                    <span className={`font-medium ${
+                    <span className={`font-medium $({
                       todayAttendance.clockInTime && todayAttendance.clockInTime > "09:00" ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
                     }`}>
                       {todayAttendance.clockInTime || "-- : --"}
@@ -1553,7 +1430,7 @@ const EmployeeDashboard = () => {
                     </h4>
                     <div className="flex items-center space-x-2">
                       {getStatusBadge(selectedRecord.status)}
-                      <span className={`text-sm font-medium ${
+                      <span className={`text-sm font-medium $({
                         selectedRecord.status === 'present' ? 'text-green-700 dark:text-green-300' :
                         selectedRecord.status === 'late' ? 'text-yellow-700 dark:text-yellow-300' :
                         selectedRecord.status === 'absent' ? 'text-red-700 dark:text-red-300' :
@@ -1637,7 +1514,7 @@ const EmployeeDashboard = () => {
                         </div>
                         <div className="relative w-full bg-gray-200 dark:bg-gray-600 rounded-full h-4">
                           <div 
-                            className={`absolute top-0 h-4 rounded-full ${
+                            className={`absolute top-0 h-4 rounded-full $({
                               selectedRecord.status === 'late' ? 'bg-yellow-500' : 'bg-green-500'
                             }`}
                             style={{
@@ -1774,93 +1651,6 @@ const EmployeeDashboard = () => {
                   className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Leave Request Detail Modal */}
-      {showLeaveModal && selectedLeaveRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full" onClick={e => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Leave Request Details</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Review and process leave request</p>
-                </div>
-                <button 
-                  onClick={() => setShowLeaveModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="space-y-4 mb-6">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Employee:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{selectedLeaveRequest.employee}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Leave Type:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{selectedLeaveRequest.type}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Dates:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {selectedLeaveRequest.startDate} to {selectedLeaveRequest.endDate}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Duration:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{selectedLeaveRequest.days} days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                        ⏳ {selectedLeaveRequest.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason:</label>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                    <p className="text-sm text-gray-900 dark:text-white">No reason provided</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button 
-                  onClick={() => setShowLeaveModal(false)}
-                  className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={() => {
-                    handleRejectLeave(selectedLeaveRequest.id);
-                    setShowLeaveModal(false);
-                  }}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-                >
-                  Reject
-                </button>
-                <button 
-                  onClick={() => {
-                    handleApproveLeave(selectedLeaveRequest.id);
-                    setShowLeaveModal(false);
-                  }}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
-                  Approve
                 </button>
               </div>
             </div>

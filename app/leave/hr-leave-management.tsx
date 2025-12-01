@@ -392,13 +392,22 @@ export default function HRLeaveManagement() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Leave Management</h1>
           <p className="text-gray-600 dark:text-gray-400">Manage team leave requests and schedules</p>
         </div>
-        <button 
-          onClick={() => setShowRequestModal(true)}
-          className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
-        >
-          <span>📝</span>
-          <span>Request Leave</span>
-        </button>
+        <div className="flex space-x-3">
+          <a 
+            href="/leave/history"
+            className="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
+          >
+            <span>📜</span>
+            <span>History</span>
+          </a>
+          <button 
+            onClick={() => setShowRequestModal(true)}
+            className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
+          >
+            <span>📝</span>
+            <span>Request Leave</span>
+          </button>
+        </div>
       </div>
 
       {/* Top Bar Filters */}

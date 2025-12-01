@@ -159,14 +159,74 @@ export default function PersonalSchedulePage() {
     return events.filter(event => event.date === dateStr);
   };
 
+  // Get start of week (Sunday) for the current date
+  const getStartOfWeek = (date: Date) => {
+    const day = date.getDay();
+    const startDate = new Date(date);
+    startDate.setDate(date.getDate() - day);
+    return startDate;
+  };
+
+  // Get end of week (Saturday) for the current date
+  const getEndOfWeek = (date: Date) => {
+    const day = date.getDay();
+    const endDate = new Date(date);
+    endDate.setDate(date.getDate() + (6 - day));
+    return endDate;
+  };
+
+  // Get events for a specific date range
+  const getEventsForDateRange = (startDate: Date, endDate: Date) => {
+    return events.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate >= startDate && eventDate <= endDate;
+    });
+  };
+
+  // Get events for a specific hour on a specific date
+  const getEventsForHour = (date: Date, hour: number) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return events.filter(event => {
+      if (event.date !== dateStr) return false;
+      
+      const startHour = parseInt(event.startTime.split(':')[0]);
+      const endHour = parseInt(event.endTime.split(':')[0]);
+      
+      return hour >= startHour && hour <= endHour;
+    });
+  };
+
+  // Navigation functions
   const navigateMonth = (direction: number) => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1));
+  };
+
+  const navigateDay = (direction: number) => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const navigateWeek = (direction: number) => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + (direction * 7));
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
   };
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const days = getCalendarDays();
+  const startOfWeek = getStartOfWeek(currentDate);
+  const endOfWeek = getEndOfWeek(currentDate);
+  const weekEvents = getEventsForDateRange(startOfWeek, endOfWeek);
+
+  // Generate hours for day view (0-23)
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   return (
     <Layout>
@@ -192,20 +252,71 @@ export default function PersonalSchedulePage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center space-x-4">
+              {viewMode === 'day' && (
+                <>
+                  <button 
+                    onClick={() => navigateDay(-1)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ◀
+                  </button>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </h2>
+                  <button 
+                    onClick={() => navigateDay(1)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ▶
+                  </button>
+                </>
+              )}
+              
+              {viewMode === 'week' && (
+                <>
+                  <button 
+                    onClick={() => navigateWeek(-1)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ◀
+                  </button>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </h2>
+                  <button 
+                    onClick={() => navigateWeek(1)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ▶
+                  </button>
+                </>
+              )}
+              
+              {viewMode === 'month' && (
+                <>
+                  <button 
+                    onClick={() => navigateMonth(-1)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ◀
+                  </button>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h2>
+                  <button 
+                    onClick={() => navigateMonth(1)}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    ▶
+                  </button>
+                </>
+              )}
+              
               <button 
-                onClick={() => navigateMonth(-1)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                onClick={goToToday}
+                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
               >
-                ◀
-              </button>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </h2>
-              <button 
-                onClick={() => navigateMonth(1)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                ▶
+                Today
               </button>
             </div>
             
@@ -244,15 +355,117 @@ export default function PersonalSchedulePage() {
           </div>
         </div>
 
-        {/* Calendar View */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="grid grid-cols-7 border-b border-gray-200">
-            {dayNames.map((day) => (
-              <div key={day} className="py-3 text-center text-sm font-medium text-gray-500">
-                {day}
+        {/* Day View */}
+        {viewMode === 'day' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="grid grid-cols-12 border-b border-gray-200">
+              <div className="col-span-2 py-3 text-center text-sm font-medium text-gray-500">
+                Time
               </div>
-            ))}
+              <div className="col-span-10 py-3 text-center text-sm font-medium text-gray-500">
+                {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              </div>
+            </div>
+            
+            <div className="divide-y divide-gray-200">
+              {hours.map((hour) => {
+                const hourEvents = getEventsForHour(currentDate, hour);
+                return (
+                  <div key={hour} className="grid grid-cols-12">
+                    <div className="col-span-2 py-2 px-4 text-sm text-gray-500 border-r border-gray-200">
+                      {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                    </div>
+                    <div className="col-span-10 py-2 px-4 min-h-16 relative">
+                      {hourEvents.map((event) => (
+                        <div 
+                          key={event.id}
+                          className={`mb-1 p-2 rounded border cursor-pointer ${getEventTypeColor(event.type)}`}
+                          onClick={() => openEditModal(event)}
+                        >
+                          <div className="flex items-center">
+                            <span className="mr-1">{getEventTypeIcon(event.type)}</span>
+                            <span className="font-medium">{event.title}</span>
+                          </div>
+                          <div className="text-xs">
+                            {event.startTime} - {event.endTime}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+        )}
+
+        {/* Week View */}
+        {viewMode === 'week' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="grid grid-cols-8 border-b border-gray-200">
+              <div className="py-3 text-center text-sm font-medium text-gray-500"></div>
+              {Array.from({ length: 7 }).map((_, i) => {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                const isToday = date.toDateString() === new Date().toDateString();
+                return (
+                  <div 
+                    key={i} 
+                    className={`py-3 text-center text-sm font-medium ${isToday ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}
+                  >
+                    <div>{dayNames[date.getDay()]}</div>
+                    <div className={`text-lg ${isToday ? 'font-bold' : ''}`}>{date.getDate()}</div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className="divide-y divide-gray-200">
+              {hours.map((hour) => (
+                <div key={hour} className="grid grid-cols-8">
+                  <div className="py-2 px-4 text-sm text-gray-500 border-r border-gray-200">
+                    {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                  </div>
+                  {Array.from({ length: 7 }).map((_, i) => {
+                    const date = new Date(startOfWeek);
+                    date.setDate(startOfWeek.getDate() + i);
+                    const hourEvents = getEventsForHour(date, hour);
+                    return (
+                      <div key={i} className="py-2 px-1 min-h-16 relative border-r border-gray-200 last:border-r-0">
+                        {hourEvents.map((event) => (
+                          <div 
+                            key={event.id}
+                            className={`mb-1 p-1 rounded text-xs border cursor-pointer truncate ${getEventTypeColor(event.type)}`}
+                            onClick={() => openEditModal(event)}
+                          >
+                            <div className="flex items-center">
+                              <span className="mr-1">{getEventTypeIcon(event.type)}</span>
+                              <span className="font-medium truncate">{event.title}</span>
+                            </div>
+                            <div className="truncate">
+                              {event.startTime} - {event.endTime}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Calendar View */}
+        {viewMode === 'month' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="grid grid-cols-7 border-b border-gray-200">
+              {dayNames.map((day) => (
+                <div key={day} className="py-3 text-center text-sm font-medium text-gray-500">
+                  {day}
+                </div>
+              ))}
+            </div>
           
           <div className="grid grid-cols-7">
             {days.map((day, index) => {
@@ -303,8 +516,9 @@ export default function PersonalSchedulePage() {
             })}
           </div>
         </div>
+      )}
 
-        {/* Upcoming Events List */}
+      {/* Upcoming Events List */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Upcoming Events</h3>
