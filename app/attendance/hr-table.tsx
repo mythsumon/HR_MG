@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Pagination from '@/components/Pagination';
 
 interface Employee {
   id: string;
@@ -17,11 +18,13 @@ interface AttendanceRecord {
   checkOut?: string;
 }
 
-export default function HRAttendanceTable() {
-  const [selectedDepartment, setSelectedDepartment] = React.useState('All');
-  const [selectedRole, setSelectedRole] = React.useState('All');
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState<'table' | 'analytics'>('table');
+const HRAttendanceTable: React.FC = () => {
+  const [selectedDepartment, setSelectedDepartment] = useState('All');
+  const [selectedRole, setSelectedRole] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'table' | 'analytics'>('table');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const employees: Employee[] = [
     { id: '1', name: 'John Kim', department: 'Backend', role: 'Senior Developer', avatar: 'JK' },
@@ -101,6 +104,11 @@ export default function HRAttendanceTable() {
   const roles = ['All', 'Developer', 'Designer', 'Analyst'];
   const filteredEmployees = getFilteredEmployees();
   const dateRangeArray = getDateRange();
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -186,7 +194,7 @@ export default function HRAttendanceTable() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredEmployees.map((employeeData) => (
+              {paginatedEmployees.map((employeeData) => (
                 <tr key={employeeData.employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800 z-10 border-r border-gray-200 dark:border-gray-700">
                     <div className="flex items-center">
@@ -240,7 +248,20 @@ export default function HRAttendanceTable() {
             </tbody>
           </table>
         </div>
+      
+        {filteredEmployees.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredEmployees.length}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default HRAttendanceTable;

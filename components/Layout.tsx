@@ -30,7 +30,7 @@ const navigation: NavigationItem[] = [
   { name: 'Loading UI', href: '/loading-ui', icon: '🔄', role: 'all', group: 'hr' },
   { name: 'Schedule Management', href: '/schedule', icon: '🗓️', role: 'manager', group: 'hr' },
   { name: 'Personal Schedule', href: '/personal-schedule', icon: '📅', role: 'all', group: 'hr' },
-  { name: 'Organization', href: '/organization', icon: '🏢', role: 'manager', group: 'hr' },
+  { name: 'Organization', href: '/organization', icon: '🏢', role: 'all', group: 'hr' },
   { name: 'Payroll', href: '/payroll', icon: '💰', role: 'manager', group: 'hr' },
   { name: 'Reports', href: '/reports', icon: '📊', role: 'manager', group: 'hr' },
   { name: 'Office Management', href: '/office', icon: '🏢', role: 'manager', group: 'hr' },

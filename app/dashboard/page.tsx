@@ -1658,6 +1658,113 @@ const EmployeeDashboard = () => {
         </div>
       )}
 
+      {/* Organization Chart */}
+      <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 transition-all duration-300 hover:shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <span className="text-blue-600 dark:text-blue-300 text-xl">🏢</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Organization Structure</h3>
+          </div>
+          <a 
+            href="/organization" 
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+          >
+            <span>View Full Chart</span>
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </a>
+        </div>
+        
+        <div className="flex flex-col items-center">
+          {/* CEO */}
+          <div className="relative group">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 rounded-xl shadow-lg w-56 text-center transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+              <div className="font-bold text-lg">Chief Executive Officer</div>
+              <div className="text-base mt-1">John Smith</div>
+              <div className="text-xs opacity-80 mt-2">Reports to Board</div>
+            </div>
+            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-blue-500 rotate-45"></div>
+          </div>
+          
+          {/* Connectors */}
+          <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-gray-300 dark:to-gray-600 mb-6"></div>
+          
+          {/* Departments */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+            {/* Human Resources */}
+            <div className="flex flex-col items-center group">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 rounded-xl shadow-lg w-48 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <div className="font-bold text-base">Human Resources</div>
+                <div className="text-sm mt-1">Sarah Johnson</div>
+                <div className="text-xs opacity-90 mt-2">12 team members</div>
+              </div>
+              <div className="flex flex-col items-center space-y-4 mt-5">
+                <div className="h-8 w-1 bg-gradient-to-b from-emerald-400 to-gray-300 dark:to-gray-600"></div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="font-medium text-sm">Recruitment</div>
+                  <div className="text-xs mt-1">Robert Taylor</div>
+                  <div className="text-xs opacity-90 mt-1">4 members</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Engineering */}
+            <div className="flex flex-col items-center group">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 rounded-xl shadow-lg w-48 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <div className="font-bold text-base">Engineering</div>
+                <div className="text-sm mt-1">Michael Chen</div>
+                <div className="text-xs opacity-90 mt-2">35 team members</div>
+              </div>
+              <div className="flex flex-col items-center space-y-4 mt-5">
+                <div className="h-8 w-1 bg-gradient-to-b from-emerald-400 to-gray-300 dark:to-gray-600"></div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="font-medium text-sm">Frontend</div>
+                  <div className="text-xs mt-1">Alex Kim</div>
+                  <div className="text-xs opacity-90 mt-1">8 members</div>
+                </div>
+                <div className="h-4 w-1 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="font-medium text-sm">Backend</div>
+                  <div className="text-xs mt-1">Priya Sharma</div>
+                  <div className="text-xs opacity-90 mt-1">12 members</div>
+                </div>
+                <div className="h-4 w-1 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="font-medium text-sm">UI/UX Design</div>
+                  <div className="text-xs mt-1">Jennifer Lee</div>
+                  <div className="text-xs opacity-90 mt-1">5 members</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Marketing */}
+            <div className="flex flex-col items-center group">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 rounded-xl shadow-lg w-48 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <div className="font-bold text-base">Marketing</div>
+                <div className="text-sm mt-1">Emma Rodriguez</div>
+                <div className="text-xs opacity-90 mt-2">18 team members</div>
+              </div>
+              <div className="flex flex-col items-center space-y-4 mt-5">
+                <div className="h-8 w-1 bg-gradient-to-b from-emerald-400 to-gray-300 dark:to-gray-600"></div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="font-medium text-sm">Digital</div>
+                  <div className="text-xs mt-1">Thomas Anderson</div>
+                  <div className="text-xs opacity-90 mt-1">7 members</div>
+                </div>
+                <div className="h-4 w-1 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                  <div className="font-medium text-sm">Content</div>
+                  <div className="text-xs mt-1">Lisa Garcia</div>
+                  <div className="text-xs opacity-90 mt-1">6 members</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layout>
   );
 };

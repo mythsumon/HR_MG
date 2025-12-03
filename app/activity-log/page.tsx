@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
+import Pagination from '@/components/Pagination';
 
 interface ActivityLogEntry {
   id: string;
   timestamp: string;
   user: string;
   action: string;
-  details: string;
+  module: string;
   ip: string;
   userAgent: string;
   severity: 'info' | 'warning' | 'error' | 'success';
@@ -20,7 +21,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-20T09:30:00Z',
     user: 'Sarah Johnson',
     action: 'User Login',
-    details: 'Successful login from IP 192.168.1.100',
+    module: 'Authentication',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'info'
@@ -30,7 +31,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-20T10:15:00Z',
     user: 'Sarah Johnson',
     action: 'Employee Created',
-    details: 'Created new employee profile for David Wilson (EMP007)',
+    module: 'Employee Management',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'success'
@@ -40,7 +41,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-20T11:20:00Z',
     user: 'Sarah Johnson',
     action: 'Payroll Updated',
-    details: 'Updated salary for EMP003 (John Smith) from $5,000 to $5,500',
+    module: 'Payroll',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'warning'
@@ -50,7 +51,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-20T13:45:00Z',
     user: 'Sarah Johnson',
     action: 'Leave Approved',
-    details: 'Approved annual leave request for EMP005 (Lisa Chen) from 2025-09-25 to 2025-09-27',
+    module: 'Leave Management',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'info'
@@ -60,7 +61,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-20T15:30:00Z',
     user: 'Sarah Johnson',
     action: 'System Error',
-    details: 'Failed to generate payroll report due to database timeout',
+    module: 'Reports',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'error'
@@ -70,7 +71,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-20T16:15:00Z',
     user: 'Sarah Johnson',
     action: 'Report Generated',
-    details: 'Generated monthly attendance report for September 2025',
+    module: 'Reports',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'info'
@@ -80,7 +81,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-21T08:45:00Z',
     user: 'Sarah Johnson',
     action: 'User Logout',
-    details: 'Successful logout',
+    module: 'Authentication',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'info'
@@ -90,7 +91,7 @@ const mockActivityLogs: ActivityLogEntry[] = [
     timestamp: '2025-09-21T09:15:00Z',
     user: 'Sarah Johnson',
     action: 'Settings Changed',
-    details: 'Updated company working hours from 9AM-6PM to 8:30AM-5:30PM',
+    module: 'System Configuration',
     ip: '192.168.1.100',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/98.0.4758.102',
     severity: 'warning'
@@ -101,14 +102,21 @@ export default function ActivityLogPage() {
   const [logs] = useState<ActivityLogEntry[]>(mockActivityLogs);
   const [filter, setFilter] = useState<'all' | 'info' | 'warning' | 'error' | 'success'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const filteredLogs = logs.filter(log => {
     const matchesFilter = filter === 'all' || log.severity === filter;
     const matchesSearch = log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          log.details.toLowerCase().includes(searchTerm.toLowerCase());
+                          log.module.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -236,7 +244,7 @@ export default function ActivityLogPage() {
                     Action
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Details
+                    Module
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Severity
@@ -244,7 +252,7 @@ export default function ActivityLogPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredLogs.map((log) => (
+                {paginatedLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {formatTimestamp(log.timestamp)}
@@ -256,8 +264,8 @@ export default function ActivityLogPage() {
                       {log.action}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-md">
-                      <div className="truncate max-w-xs" title={log.details}>
-                        {log.details}
+                      <div className="truncate max-w-xs" title={log.module}>
+                        {log.module}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -279,6 +287,17 @@ export default function ActivityLogPage() {
                 Try adjusting your search or filter criteria
               </p>
             </div>
+          )}
+          
+          {filteredLogs.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={filteredLogs.length}
+              onItemsPerPageChange={setItemsPerPage}
+            />
           )}
         </div>
 

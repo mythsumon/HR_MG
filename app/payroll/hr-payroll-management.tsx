@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Pagination from '@/components/Pagination';
 
 interface PayrollEmployee {
   id: string;
@@ -36,6 +37,8 @@ export default function HRPayrollManagement() {
     allowances: [{ name: '', amount: 0 }],
     deductions: [{ name: '', amount: 0 }],
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Mock data
   const mockEmployees: PayrollEmployee[] = [
@@ -224,6 +227,11 @@ export default function HRPayrollManagement() {
     netPay: acc.netPay + emp.netPay
   }), { baseSalary: 0, overtime: 0, allowances: 0, deductions: 0, netPay: 0 });
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -345,7 +353,7 @@ export default function HRPayrollManagement() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredEmployees.map((employee) => (
+              {paginatedEmployees.map((employee) => (
                 <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-4 py-4"><input type="checkbox" className="rounded" /></td>
                   <td className="px-4 py-4">
@@ -405,6 +413,17 @@ export default function HRPayrollManagement() {
             </tfoot>
           </table>
         </div>
+        
+        {filteredEmployees.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredEmployees.length}
+            onItemsPerPageChange={setItemsPerPage}
+          />
+        )}
       </div>
 
       {/* Payslip Drawer */}

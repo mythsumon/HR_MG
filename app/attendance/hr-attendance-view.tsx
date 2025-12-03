@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Pagination from '@/components/Pagination';
 
 // Types for attendance data
 interface AttendanceRecord {
@@ -132,15 +133,13 @@ const HRAttendanceView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'cards'>('list');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [selectedTeam, setSelectedTeam] = useState('All');
-  const [selectedDateRange, setSelectedDateRange] = useState('Today');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<AttendanceRecord | null>(null);
-  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 6)));
-  const [endDate, setEndDate] = useState(new Date());
-  const [showCustomRange, setShowCustomRange] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Helper function for event icons
   const getEventIcon = (type: string): string => {
@@ -197,44 +196,13 @@ const HRAttendanceView: React.FC = () => {
   // Generate date range for attendance data
   const getDateRange = () => {
     const dates = [];
-    if (selectedDateRange === 'Custom' && showCustomRange) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      // Limit to 31 days max to prevent UI overflow
-      const maxDays = 31;
-      let dayCount = 0;
-      for (let d = new Date(start); d <= end && dayCount < maxDays; d.setDate(d.getDate() + 1)) {
-        dates.push(new Date(d));
-        dayCount++;
-      }
-    } else if (selectedDateRange === 'This Month') {
-      const start = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-      const end = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
-      // Limit to 31 days max to prevent UI overflow
-      const maxDays = 31;
-      let dayCount = 0;
-      for (let d = new Date(start); d <= end && dayCount < maxDays; d.setDate(d.getDate() + 1)) {
-        dates.push(new Date(d));
-        dayCount++;
-      }
-    } else if (selectedDateRange === 'Last Month') {
-      const start = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
-      const end = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 0);
-      // Limit to 31 days max to prevent UI overflow
-      const maxDays = 31;
-      let dayCount = 0;
-      for (let d = new Date(start); d <= end && dayCount < maxDays; d.setDate(d.getDate() + 1)) {
-        dates.push(new Date(d));
-        dayCount++;
-      }
-    } else {
-      const start = new Date(selectedDate);
-      start.setDate(selectedDate.getDate() - 6);
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        dates.push(date);
-      }
+    // Fixed date range of 7 days (current week)
+    const start = new Date(selectedDate);
+    start.setDate(selectedDate.getDate() - 3);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      dates.push(date);
     }
     return dates;
   };
@@ -284,7 +252,57 @@ const HRAttendanceView: React.FC = () => {
     return history;
   };
 
+  // Generate weekly attendance data for a specific week
+  const generateWeeklyAttendance = (employeeId: string, weekStartDate: Date) => {
+    const weekData = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStartDate);
+      date.setDate(weekStartDate.getDate() + i);
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayName = dayNames[date.getDay()];
+      
+      // Skip weekends for this example
+      if (date.getDay() === 0 || date.getDay() === 6) {
+        continue;
+      }
+      
+      // Generate mock data
+      const random = Math.random();
+      let status: 'present' | 'late' | 'absent' | 'leave' = 'present';
+      let checkIn = '09:00';
+      let checkOut = '18:00';
+      
+      if (random < 0.05) {
+        status = 'absent';
+        checkIn = '–';
+        checkOut = '–';
+      } else if (random < 0.15) {
+        status = 'leave';
+        checkIn = '–';
+        checkOut = '–';
+      } else if (random < 0.3) {
+        status = 'late';
+        checkIn = `09:${Math.floor(Math.random() * 30) + 10}`.padStart(2, '0');
+        checkOut = '18:00';
+      }
+      
+      weekData.push({
+        day: dayName,
+        date: date,
+        status,
+        checkIn,
+        checkOut
+      });
+    }
+    return weekData;
+  };
+
   const dateRangeArray = getDateRange();
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -337,46 +355,6 @@ const HRAttendanceView: React.FC = () => {
                 <option value="Gamma">Gamma Team</option>
               </select>
             </div>
-
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Date Range</label>
-              <select 
-                value={selectedDateRange}
-                onChange={(e) => {
-                  setSelectedDateRange(e.target.value);
-                  if (e.target.value === 'Custom') {
-                    setShowCustomRange(true);
-                  } else {
-                    setShowCustomRange(false);
-                  }
-                }}
-                className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[120px]"
-              >
-                <option value="Today">Today ▾</option>
-                <option value="This Week">This Week</option>
-                <option value="This Month">This Month</option>
-                <option value="Last Month">Last Month</option>
-                <option value="Custom">Custom Range</option>
-              </select>
-            </div>
-
-            {showCustomRange && (
-              <div className="flex items-center space-x-2">
-                <input
-                  type="date"
-                  value={startDate.toISOString().split('T')[0]}
-                  onChange={(e) => setStartDate(new Date(e.target.value))}
-                  className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <span className="text-gray-500">to</span>
-                <input
-                  type="date"
-                  value={endDate.toISOString().split('T')[0]}
-                  onChange={(e) => setEndDate(new Date(e.target.value))}
-                  className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            )}
 
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">Status</label>
@@ -508,13 +486,7 @@ const HRAttendanceView: React.FC = () => {
               <div className="p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900">📌 Attendance Snapshot</h3>
                 <p className="text-sm text-gray-600">
-                  {selectedDateRange === 'Custom' ? 
-                    `${startDate.toLocaleDateString()} – ${endDate.toLocaleDateString()}` :
-                    selectedDateRange === 'This Month' ?
-                      `${new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` :
-                      selectedDateRange === 'Last Month' ?
-                        `${new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` :
-                        `Week of ${new Date(selectedDate.setDate(selectedDate.getDate() - 6)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                  Week of {new Date(selectedDate.setDate(selectedDate.getDate() - 3)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </p>
                 {dateRangeArray.length > 15 && (
                   <p className="text-xs text-gray-500 mt-1">
@@ -544,7 +516,7 @@ const HRAttendanceView: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {filteredData.map((record) => (
+                        {paginatedData.map((record) => (
                           <tr key={record.id} className="hover:bg-gray-50">
                             <td className="px-4 py-3 sticky left-0 bg-white z-10 border-r">
                               <div className="flex items-center space-x-3 min-w-[150px]">
@@ -593,6 +565,17 @@ const HRAttendanceView: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
+              {filteredData.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={filteredData.length}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              )}
             </div>
           )}
 
@@ -775,56 +758,54 @@ const HRAttendanceView: React.FC = () => {
                   onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 text-2xl"
                 >
-                  ✕
+                  ×
                 </button>
               </div>
               
               <div className="space-y-6">
-                {/* Employee Header */}
+                {/* Employee Info */}
                 <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <span className="text-3xl">{selectedEmployee.avatar}</span>
+                  <span className="text-4xl">{selectedEmployee.avatar}</span>
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900">{selectedEmployee.employeeName}</h4>
-                    <p className="text-gray-600">{selectedEmployee.employeeId} • {selectedEmployee.department} • {selectedEmployee.role}</p>
-                  </div>
-                </div>
-                
-                {/* Today's Attendance */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h5 className="text-md font-semibold text-gray-900 mb-3">Today's Attendance ({selectedEmployee.date})</h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
-                        <span className={`font-medium ${getStatusDisplay(selectedEmployee.status).color}`}>
-                          {selectedEmployee.status.charAt(0).toUpperCase() + selectedEmployee.status.slice(1)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Check-in:</span>
-                        <span className="font-medium">{selectedEmployee.checkIn}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Check-out:</span>
-                        <span className="font-medium">{selectedEmployee.checkOut}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Hours:</span>
-                        <span className="font-medium text-blue-600">{selectedEmployee.totalHours}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Status Icon:</span>
-                        <span className="text-2xl">{getStatusDisplay(selectedEmployee.status).icon}</span>
-                      </div>
-                    </div>
+                    <p className="text-gray-600">{selectedEmployee.department} • {selectedEmployee.role}</p>
+                    <p className="text-sm text-gray-500">ID: {selectedEmployee.employeeId}</p>
                   </div>
                 </div>
                 
                 {/* Weekly Attendance */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h5 className="text-md font-semibold text-gray-900 mb-3">Weekly Attendance (Sep 15–19)</h5>
+                  <div className="flex items-center justify-between mb-4">
+                    <h5 className="text-md font-semibold text-gray-900">Weekly Attendance</h5>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => {
+                          // Navigate to previous week
+                          const newDate = new Date(selectedDate);
+                          newDate.setDate(selectedDate.getDate() - 7);
+                          setSelectedDate(newDate);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        ◀
+                      </button>
+                      <span className="text-sm text-gray-600">
+                        Week of {new Date(selectedDate.setDate(selectedDate.getDate() - 3)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–
+                        {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                      <button 
+                        onClick={() => {
+                          // Navigate to next week
+                          const newDate = new Date(selectedDate);
+                          newDate.setDate(selectedDate.getDate() + 7);
+                          setSelectedDate(newDate);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        ▶
+                      </button>
+                    </div>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -852,56 +833,6 @@ const HRAttendanceView: React.FC = () => {
                               </td>
                               <td className="px-3 py-2 text-center text-sm text-gray-900">
                                 {data.checkOut || '–'}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                
-                {/* Attendance History */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h5 className="text-md font-semibold text-gray-900 mb-3">Attendance History (Last 30 Days)</h5>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">Date</th>
-                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Status</th>
-                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Check-in</th>
-                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Check-out</th>
-                          <th className="px-3 py-2 text-center text-sm font-medium text-gray-900">Total Hours</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {generateAttendanceHistory(selectedEmployee.employeeId).map((record: any, index: number) => {
-                          const statusDisplay = getStatusDisplay(record.status);
-                          return (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 text-sm text-gray-900">
-                                {new Date(record.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                              </td>
-                              <td className="px-3 py-2 text-center">
-                                <div className="flex items-center justify-center">
-                                  <span className={`mr-1 ${statusDisplay.color}`}>{statusDisplay.icon}</span>
-                                  <span className="text-sm">
-                                    {record.status === 'present' ? 'Present' :
-                                     record.status === 'late' ? 'Late' :
-                                     record.status === 'absent' ? 'Absent' :
-                                     'Leave'}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                {record.checkIn}
-                              </td>
-                              <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                {record.checkOut}
-                              </td>
-                              <td className="px-3 py-2 text-center text-sm text-gray-900">
-                                {record.totalHours}
                               </td>
                             </tr>
                           );

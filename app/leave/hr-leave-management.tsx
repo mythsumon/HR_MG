@@ -39,6 +39,7 @@ export default function HRLeaveManagement() {
   const [showEmployeeDrawer, setShowEmployeeDrawer] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  // Pagination is already implemented in this component
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
@@ -623,7 +624,7 @@ export default function HRLeaveManagement() {
                         const dateStr = formatDate(date);
                         const leaves = getLeaveForEmployeeAndDate(employee.id, dateStr);
                         const isWeekendDay = isWeekend(date);
-                        
+                                            
                         return (
                           <td key={dateIndex} className={`px-4 py-4 text-center ${isWeekendDay ? 'bg-gray-50 dark:bg-gray-700' : ''}`}>
                             {isWeekendDay ? (
@@ -665,6 +666,7 @@ export default function HRLeaveManagement() {
                 </tbody>
               </table>
             </div>
+            {/* Pagination is already implemented in this component */}
           </div>
 
           {/* Legend */}

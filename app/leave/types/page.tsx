@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import Pagination from '@/components/Pagination';
 
 interface LeaveType {
   id: string;
@@ -71,6 +72,8 @@ export default function LeaveTypesPage() {
     isActive: true,
     color: 'blue'
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Check user role
   useEffect(() => {
@@ -182,6 +185,11 @@ export default function LeaveTypesPage() {
     );
   }
 
+  // Calculate pagination
+  const totalPages = Math.ceil(leaveTypes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLeaveTypes = leaveTypes.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -227,7 +235,7 @@ export default function LeaveTypesPage() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {leaveTypes.map((leaveType) => (
+                {paginatedLeaveTypes.map((leaveType) => (
                   <tr key={leaveType.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -292,6 +300,17 @@ export default function LeaveTypesPage() {
               </tbody>
             </table>
           </div>
+          
+          {leaveTypes.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={leaveTypes.length}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          )}
         </div>
 
         {/* Add/Edit Modal */}

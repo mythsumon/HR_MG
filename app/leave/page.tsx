@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import HRLeaveManagement from './hr-leave-management';
+import { useRouter } from 'next/navigation';
 
 export default function LeavePage() {
+  const router = useRouter();
   const [showRequestModal, setShowRequestModal] = React.useState(false);
   const [leaveRequest, setLeaveRequest] = React.useState({
     leaveType: '',
@@ -26,6 +28,17 @@ export default function LeavePage() {
     { value: 'unpaid', label: 'Unpaid Leave' },
     { value: 'vacation', label: 'Vacation Leave' }
   ];
+
+  // Helper function to get leave type icon
+  const getLeaveTypeIcon = (type: string) => {
+    switch (type) {
+      case 'annual': return '📅';
+      case 'sick': return '🤒';
+      case 'unpaid': return '⏸️';
+      case 'vacation': return '🌴';
+      default: return '📅';
+    }
+  };
 
   // Sample leave data for calendar
   const sampleLeaves = [
@@ -133,13 +146,22 @@ export default function LeavePage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Leave Management</h1>
             <p className="text-gray-600 dark:text-gray-400">Check your leave balances and requests</p>
           </div>
-          <button 
-            onClick={() => setShowRequestModal(true)}
-            className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
-          >
-            <span>📝</span>
-            <span>Request Leave</span>
-          </button>
+          <div className="flex space-x-3">
+            <button 
+              onClick={() => router.push('/leave/history')}
+              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
+            >
+              <span>📜</span>
+              <span>Leave History</span>
+            </button>
+            <button 
+              onClick={() => setShowRequestModal(true)}
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 font-medium shadow-sm"
+            >
+              <span>📝</span>
+              <span>Request Leave</span>
+            </button>
+          </div>
         </div>
 
         {/* Leave Balances */}

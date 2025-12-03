@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 
 interface Department {
@@ -26,11 +26,24 @@ interface OrganizationStructure {
 }
 
 export default function OrganizationPage() {
-  const [activeTab, setActiveTab] = useState<'departments' | 'teams' | 'structure'>('departments');
+  const [userRole, setUserRole] = useState<'employee' | 'manager'>('employee');
+  const [activeTab, setActiveTab] = useState<'departments' | 'teams' | 'structure'>('structure');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Department | Team | null>(null);
+
+  // Load user role from localStorage
+  useEffect(() => {
+    const storedRole = localStorage.getItem('userRole') as 'employee' | 'manager';
+    if (storedRole) {
+      setUserRole(storedRole);
+      // Set default tab to structure for employees
+      if (storedRole === 'employee') {
+        setActiveTab('structure');
+      }
+    }
+  }, []);
 
   // Mock data for organization structure
   const [orgData, setOrgData] = useState<OrganizationStructure>({
@@ -211,74 +224,78 @@ export default function OrganizationPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Organization Structure</h1>
-            <p className="text-gray-600">Manage departments, teams, and organizational hierarchy</p>
+            <p className="text-gray-600">View organizational hierarchy</p>
           </div>
-          <button
-            onClick={openCreateModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-          >
-            <span>+</span>
-            <span>Add New</span>
-          </button>
+          {userRole === 'manager' && (
+            <button
+              onClick={openCreateModal}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <span>+</span>
+              <span>Add New</span>
+            </button>
+          )}
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+        {/* Search and Filters - Only visible to managers */}
+        {userRole === 'manager' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Search departments or teams..."
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Search departments or teams..."
-                />
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setActiveTab('departments')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'departments'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Departments
+                </button>
+                <button
+                  onClick={() => setActiveTab('teams')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'teams'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Teams
+                </button>
+                <button
+                  onClick={() => setActiveTab('structure')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'structure'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Org Chart
+                </button>
               </div>
             </div>
-            
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setActiveTab('departments')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'departments'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Departments
-              </button>
-              <button
-                onClick={() => setActiveTab('teams')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'teams'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Teams
-              </button>
-              <button
-                onClick={() => setActiveTab('structure')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'structure'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                Org Chart
-              </button>
-            </div>
           </div>
-        </div>
+        )}
 
-        {/* Departments Tab */}
-        {activeTab === 'departments' && (
+        {/* Departments Tab - Only visible to managers */}
+        {userRole === 'manager' && activeTab === 'departments' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Departments ({filteredDepartments.length})</h3>
@@ -352,8 +369,8 @@ export default function OrganizationPage() {
           </div>
         )}
 
-        {/* Teams Tab */}
-        {activeTab === 'teams' && (
+        {/* Teams Tab - Only visible to managers */}
+        {userRole === 'manager' && activeTab === 'teams' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Teams ({filteredTeams.length})</h3>
@@ -434,7 +451,7 @@ export default function OrganizationPage() {
         )}
 
         {/* Organization Structure Tab */}
-        {activeTab === 'structure' && (
+        {(userRole === 'manager' ? activeTab === 'structure' : true) && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="px-6 py-4 border-b border-gray-200 mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Organization Chart</h3>
@@ -442,33 +459,39 @@ export default function OrganizationPage() {
             
             <div className="flex flex-col items-center">
               {/* CEO */}
-              <div className="bg-blue-600 text-white p-4 rounded-lg shadow-md w-48 text-center mb-8">
-                <div className="font-bold">CEO</div>
-                <div className="text-sm">John Smith</div>
+              <div className="relative group">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 rounded-xl shadow-lg w-56 text-center transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+                  <div className="font-bold text-lg">Chief Executive Officer</div>
+                  <div className="text-base mt-1">John Smith</div>
+                  <div className="text-xs opacity-80 mt-2">Reports to Board</div>
+                </div>
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-blue-500 rotate-45"></div>
               </div>
               
               {/* Connectors */}
-              <div className="h-8 w-1 bg-gray-300 mb-8"></div>
+              <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-gray-300 mb-6"></div>
               
               {/* Departments */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
                 {orgData.departments.map((dept) => (
-                  <div key={dept.id} className="flex flex-col items-center">
-                    <div className="bg-green-500 text-white p-3 rounded-lg shadow-md w-40 text-center mb-4">
-                      <div className="font-bold text-sm">{dept.name}</div>
-                      <div className="text-xs">{dept.head}</div>
+                  <div key={dept.id} className="flex flex-col items-center group">
+                    <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 rounded-xl shadow-lg w-48 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                      <div className="font-bold text-base">{dept.name}</div>
+                      <div className="text-sm mt-1">{dept.head}</div>
+                      <div className="text-xs opacity-90 mt-2">{dept.employeeCount} team members</div>
                     </div>
                     
                     {/* Teams under department */}
-                    <div className="flex flex-col items-center space-y-4 mt-4">
+                    <div className="flex flex-col items-center space-y-4 mt-5">
                       {orgData.teams
                         .filter(team => team.department === dept.name)
-                        .map(team => (
+                        .map((team, index) => (
                           <>
-                            <div className="h-4 w-1 bg-gray-300"></div>
-                            <div className="bg-yellow-500 text-white p-2 rounded-lg shadow-md w-32 text-center">
-                              <div className="font-medium text-xs">{team.name}</div>
-                              <div className="text-xs">{team.lead}</div>
+                            <div className="h-4 w-1 bg-gradient-to-b from-emerald-400 to-gray-300 dark:to-gray-600"></div>
+                            <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg shadow-md w-40 text-center transform transition-all duration-300 hover:scale-105">
+                              <div className="font-medium text-sm">{team.name}</div>
+                              <div className="text-xs mt-1">{team.lead}</div>
+                              <div className="text-xs opacity-90 mt-1">{team.memberCount} members</div>
                             </div>
                           </>
                         ))}

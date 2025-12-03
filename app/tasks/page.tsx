@@ -15,6 +15,7 @@ import {
   KanbanColumn 
 } from '@/components/TaskComponents';
 import { TaskDetailModal } from '@/components/TaskDetailModal';
+import Pagination from '@/components/Pagination';
 
 export default function TasksPage() {
   const router = useRouter();
@@ -29,6 +30,8 @@ export default function TasksPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTime, setFilterTime] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   const [projects] = useState<Project[]>([
     { id: 'proj-1', name: 'Website Redesign', description: 'Company website overhaul', color: 'bg-blue-100', taskCount: 8 },
@@ -364,6 +367,11 @@ export default function TasksPage() {
       setSelectedTask(updatedTask);
     }
   };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTasks = filteredTasks.slice(startIndex, startIndex + itemsPerPage);
 
   // Employee View - Personal Task Management
   if (userRole === 'employee') {
@@ -882,7 +890,7 @@ export default function TasksPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredTasks.map((task) => (
+                  {paginatedTasks.map((task) => (
                     <tr key={task.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleTaskClick(task)}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{task.title}</div>
@@ -916,6 +924,17 @@ export default function TasksPage() {
                 </tbody>
               </table>
             </div>
+            
+            {filteredTasks.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredTasks.length}
+                onItemsPerPageChange={setItemsPerPage}
+              />
+            )}
           </div>
         )}
 
