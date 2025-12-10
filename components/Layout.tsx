@@ -27,6 +27,7 @@ const navigation: NavigationItem[] = [
   // HR Functions Group
   { name: 'Leave Requests', href: '/leave', icon: '📅', role: 'all', group: 'hr', badge: '3' },
   { name: 'Leave Types', href: '/leave/types', icon: '📋', role: 'manager', group: 'hr' },
+  { name: 'Leave Assignment', href: '/leave/assignment', icon: '📌', role: 'manager', group: 'hr' },
   { name: 'Loading UI', href: '/loading-ui', icon: '🔄', role: 'all', group: 'hr' },
   { name: 'Schedule Management', href: '/schedule', icon: '🗓️', role: 'manager', group: 'hr' },
   { name: 'Personal Schedule', href: '/personal-schedule', icon: '📅', role: 'all', group: 'hr' },

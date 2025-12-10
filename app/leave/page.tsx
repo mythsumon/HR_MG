@@ -40,31 +40,13 @@ export default function LeavePage() {
     }
   };
 
-  // Enhanced leave data for calendar including 2025-2026
+  // Sample leave data for calendar
   const sampleLeaves = [
-    // 2024 data
     { id: 1, type: 'annual', label: 'Annual Leave', startDate: '2024-12-25', endDate: '2024-12-29', duration: 5, status: 'approved', reason: 'Family vacation during holidays' },
     { id: 2, type: 'sick', label: 'Sick Leave', startDate: '2024-11-15', endDate: '2024-11-16', duration: 2, status: 'pending', reason: 'Medical appointment' },
     { id: 3, type: 'vacation', label: 'Vacation Leave', startDate: '2024-10-22', endDate: '2024-10-22', duration: 1, status: 'rejected', reason: 'Personal day', rejectionReason: 'Team capacity issue' },
     { id: 4, type: 'annual', label: 'Annual Leave', startDate: '2024-11-01', endDate: '2024-11-03', duration: 3, status: 'approved', reason: 'Extended weekend trip' },
-    { id: 5, type: 'sick', label: 'Sick Leave', startDate: '2024-10-31', endDate: '2024-10-31', duration: 1, status: 'approved', reason: 'Flu symptoms' },
-    
-    // 2025 data
-    { id: 6, type: 'annual', label: 'Annual Leave', startDate: '2025-01-15', endDate: '2025-01-17', duration: 3, status: 'approved', reason: 'Winter break' },
-    { id: 7, type: 'vacation', label: 'Vacation Leave', startDate: '2025-03-10', endDate: '2025-03-15', duration: 6, status: 'approved', reason: 'Spring vacation' },
-    { id: 8, type: 'sick', label: 'Sick Leave', startDate: '2025-05-22', endDate: '2025-05-23', duration: 2, status: 'approved', reason: 'Medical checkup' },
-    { id: 9, type: 'annual', label: 'Annual Leave', startDate: '2025-07-01', endDate: '2025-07-10', duration: 10, status: 'approved', reason: 'Summer holiday' },
-    { id: 10, type: 'vacation', label: 'Vacation Leave', startDate: '2025-09-05', endDate: '2025-09-10', duration: 6, status: 'pending', reason: 'Family reunion' },
-    { id: 11, type: 'sick', label: 'Sick Leave', startDate: '2025-11-12', endDate: '2025-11-13', duration: 2, status: 'approved', reason: 'Doctor appointment' },
-    { id: 12, type: 'annual', label: 'Annual Leave', startDate: '2025-12-22', endDate: '2025-12-30', duration: 9, status: 'approved', reason: 'Christmas/New Year break' },
-    
-    // 2026 data
-    { id: 13, type: 'annual', label: 'Annual Leave', startDate: '2026-02-10', endDate: '2026-02-15', duration: 6, status: 'approved', reason: 'Winter vacation' },
-    { id: 14, type: 'vacation', label: 'Vacation Leave', startDate: '2026-04-05', endDate: '2026-04-12', duration: 8, status: 'approved', reason: 'Spring break' },
-    { id: 15, type: 'sick', label: 'Sick Leave', startDate: '2026-06-18', endDate: '2026-06-19', duration: 2, status: 'pending', reason: 'Medical procedure' },
-    { id: 16, type: 'annual', label: 'Annual Leave', startDate: '2026-08-05', endDate: '2026-08-15', duration: 11, status: 'approved', reason: 'Summer holiday' },
-    { id: 17, type: 'vacation', label: 'Vacation Leave', startDate: '2026-10-20', endDate: '2026-10-25', duration: 6, status: 'approved', reason: 'Autumn vacation' },
-    { id: 18, type: 'sick', label: 'Sick Leave', startDate: '2026-12-03', endDate: '2026-12-04', duration: 2, status: 'approved', reason: 'Flu symptoms' }
+    { id: 5, type: 'sick', label: 'Sick Leave', startDate: '2024-10-31', endDate: '2024-10-31', duration: 1, status: 'approved', reason: 'Flu symptoms' }
   ];
 
   // Get calendar days for current month
@@ -93,98 +75,11 @@ export default function LeavePage() {
   };
 
   // Get leaves for a specific date
-  // Enhanced function to get leaves for a specific date with attendance integration
   const getLeavesForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     return sampleLeaves.filter(leave => 
       leave.startDate <= dateStr && leave.endDate >= dateStr
     );
-  };
-
-  // Function to get attendance status for a specific date
-  const getAttendanceForDate = (date: Date) => {
-    // This would typically come from the attendance service
-    // For now, we'll simulate some attendance data
-    const dateStr = date.toISOString().split('T')[0];
-    
-    // Simulated attendance data that connects with leave data
-    const attendanceData: { [key: string]: any } = {
-      '2025-01-15': { status: 'leave', type: 'annual' },
-      '2025-01-16': { status: 'leave', type: 'annual' },
-      '2025-01-17': { status: 'leave', type: 'annual' },
-      '2025-03-10': { status: 'leave', type: 'vacation' },
-      '2025-03-11': { status: 'leave', type: 'vacation' },
-      '2025-03-12': { status: 'leave', type: 'vacation' },
-      '2025-03-13': { status: 'leave', type: 'vacation' },
-      '2025-03-14': { status: 'leave', type: 'vacation' },
-      '2025-03-15': { status: 'leave', type: 'vacation' },
-      '2025-05-22': { status: 'leave', type: 'sick' },
-      '2025-05-23': { status: 'leave', type: 'sick' },
-      '2025-07-01': { status: 'leave', type: 'annual' },
-      '2025-07-02': { status: 'leave', type: 'annual' },
-      '2025-07-03': { status: 'leave', type: 'annual' },
-      '2025-07-04': { status: 'leave', type: 'annual' },
-      '2025-07-05': { status: 'weekend' },
-      '2025-07-06': { status: 'weekend' },
-      '2025-07-07': { status: 'leave', type: 'annual' },
-      '2025-07-08': { status: 'leave', type: 'annual' },
-      '2025-07-09': { status: 'leave', type: 'annual' },
-      '2025-07-10': { status: 'leave', type: 'annual' },
-      '2025-09-05': { status: 'leave', type: 'vacation' },
-      '2025-09-06': { status: 'leave', type: 'vacation' },
-      '2025-09-07': { status: 'leave', type: 'vacation' },
-      '2025-09-08': { status: 'leave', type: 'vacation' },
-      '2025-09-09': { status: 'leave', type: 'vacation' },
-      '2025-09-10': { status: 'leave', type: 'vacation' },
-      '2025-11-12': { status: 'leave', type: 'sick' },
-      '2025-11-13': { status: 'leave', type: 'sick' },
-      '2025-12-22': { status: 'leave', type: 'annual' },
-      '2025-12-23': { status: 'leave', type: 'annual' },
-      '2025-12-24': { status: 'leave', type: 'annual' },
-      '2025-12-25': { status: 'leave', type: 'annual' },
-      '2025-12-26': { status: 'leave', type: 'annual' },
-      '2025-12-27': { status: 'weekend' },
-      '2025-12-28': { status: 'weekend' },
-      '2025-12-29': { status: 'leave', type: 'annual' },
-      '2025-12-30': { status: 'leave', type: 'annual' },
-      '2026-02-10': { status: 'leave', type: 'annual' },
-      '2026-02-11': { status: 'leave', type: 'annual' },
-      '2026-02-12': { status: 'leave', type: 'annual' },
-      '2026-02-13': { status: 'leave', type: 'annual' },
-      '2026-02-14': { status: 'leave', type: 'annual' },
-      '2026-02-15': { status: 'leave', type: 'annual' },
-      '2026-04-05': { status: 'leave', type: 'vacation' },
-      '2026-04-06': { status: 'leave', type: 'vacation' },
-      '2026-04-07': { status: 'leave', type: 'vacation' },
-      '2026-04-08': { status: 'leave', type: 'vacation' },
-      '2026-04-09': { status: 'weekend' },
-      '2026-04-10': { status: 'weekend' },
-      '2026-04-11': { status: 'leave', type: 'vacation' },
-      '2026-04-12': { status: 'leave', type: 'vacation' },
-      '2026-06-18': { status: 'leave', type: 'sick' },
-      '2026-06-19': { status: 'leave', type: 'sick' },
-      '2026-08-05': { status: 'leave', type: 'annual' },
-      '2026-08-06': { status: 'weekend' },
-      '2026-08-07': { status: 'leave', type: 'annual' },
-      '2026-08-08': { status: 'leave', type: 'annual' },
-      '2026-08-09': { status: 'leave', type: 'annual' },
-      '2026-08-10': { status: 'leave', type: 'annual' },
-      '2026-08-11': { status: 'leave', type: 'annual' },
-      '2026-08-12': { status: 'weekend' },
-      '2026-08-13': { status: 'weekend' },
-      '2026-08-14': { status: 'leave', type: 'annual' },
-      '2026-08-15': { status: 'leave', type: 'annual' },
-      '2026-10-20': { status: 'leave', type: 'vacation' },
-      '2026-10-21': { status: 'leave', type: 'vacation' },
-      '2026-10-22': { status: 'weekend' },
-      '2026-10-23': { status: 'leave', type: 'vacation' },
-      '2026-10-24': { status: 'leave', type: 'vacation' },
-      '2026-10-25': { status: 'leave', type: 'vacation' },
-      '2026-12-03': { status: 'leave', type: 'sick' },
-      '2026-12-04': { status: 'leave', type: 'sick' }
-    };
-    
-    return attendanceData[dateStr] || { status: 'present' };
   };
 
   // Get leave type color
@@ -195,18 +90,6 @@ export default function LeavePage() {
       case 'unpaid': return 'bg-gray-500';
       case 'vacation': return 'bg-green-500';
       default: return 'bg-gray-500';
-    }
-  };
-
-  // Function to get attendance status color
-  const getAttendanceStatusColor = (status: string) => {
-    switch (status) {
-      case 'present': return 'bg-green-100 text-green-800';
-      case 'absent': return 'bg-red-100 text-red-800';
-      case 'late': return 'bg-yellow-100 text-yellow-800';
-      case 'leave': return 'bg-blue-100 text-blue-800';
-      case 'weekend': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -440,23 +323,6 @@ export default function LeavePage() {
                     }`}>
                       {date.getDate()}
                     </span>
-                    
-                    {/* Attendance indicator */}
-                    {dayLeaves.length === 0 && (
-                      (() => {
-                        const attendance = getAttendanceForDate(date);
-                        if (attendance.status !== 'weekend' && attendance.status !== 'leave') {
-                          return (
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${getAttendanceStatusColor(attendance.status)}`}>
-                              {attendance.status === 'present' && '✓'}
-                              {attendance.status === 'absent' && '✗'}
-                              {attendance.status === 'late' && '⏰'}
-                            </span>
-                          );
-                        }
-                        return null;
-                      })()
-                    )}
                   </div>
                   
                   {/* Leave labels */}
@@ -484,29 +350,6 @@ export default function LeavePage() {
                         </div>
                       );
                     })}
-                    
-                    {/* Show attendance status if no leave */}
-                    {dayLeaves.length === 0 && (
-                      <div className="text-xs">
-                        {(() => {
-                          const attendance = getAttendanceForDate(date);
-                          if (attendance.status === 'weekend') {
-                            return <span className="text-gray-400">Weekend</span>;
-                          } else if (attendance.status === 'leave') {
-                            // This shouldn't happen since we already checked for leaves
-                            return <span className="text-blue-500">On Leave</span>;
-                          } else if (attendance.status === 'present') {
-                            return <span className="text-green-500">✓ Present</span>;
-                          } else if (attendance.status === 'absent') {
-                            return <span className="text-red-500">✗ Absent</span>;
-                          } else if (attendance.status === 'late') {
-                            return <span className="text-yellow-500">⏰ Late</span>;
-                          } else {
-                            return <span className="text-gray-500">No data</span>;
-                          }
-                        })()}
-                      </div>
-                    )}
                   </div>
                 </div>
               );
